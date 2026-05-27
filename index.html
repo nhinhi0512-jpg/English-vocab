@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Từ Vựng Thông Minh</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        /* Vùng công cụ điều khiển */
+        .control-panel {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 280px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 40px 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        .search-box i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+
+        .filter-box select {
+            padding: 12px 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: white;
+            cursor: pointer;
+        }
+
+        /* Nút Upload File ẩn thực tế để tùy biến giao diện đẹp hơn */
+        .upload-btn-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .btn-upload {
+            border: 2px dashed var(--secondary-color);
+            color: var(--secondary-color);
+            background-color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-upload:hover {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .upload-btn-wrapper input[type=file] {
+            font-size: 100px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        /* Danh sách từ vựng dạng lưới */
+        .vocab-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .vocab-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            border-top: 5px solid var(--primary-color);
+            transition: transform 0.2s;
+        }
+
+        .vocab-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .word-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .word-level {
+            background: #e74c3c;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .word-ipa {
+            color: #7f8c8d;
+            font-style: italic;
+            margin: 5px 0 10px 0;
+        }
+
+        .word-meaning {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 12px;
+            border-left: 3px solid var(--secondary-color);
+            padding-left: 8px;
+        }
+
+        .word-example {
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .word-example span {
+            display: block;
+            color: #666;
+            font-style: italic;
+            margin-top: 4px;
+        }
+
+        /* Chi tiết mở rộng (Word Family, Synonyms...) */
+        .word-details summary {
+            font-size: 14px;
+            color: var(--secondary-color);
+            cursor: pointer;
+            font-weight: bold;
+            user-select: none;
+        }
+
+        .details-content {
+            margin-top: 10px;
+            font-size: 13px;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+
+        .detail-item {
+            margin-bottom: 8px;
+        }
+
+        .detail-item strong {
+            color: #555;
+        }
+
+        .lesson-badge {
+            display: inline-block;
+            background: #e1f5fe;
+            color: #0288d1;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-top: 10px;
+        }
+
+        .no-result {
+            text-align: center;
+            grid-column: 1 / -1;
+            padding: 40px;
+            color: #888;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1><i class="fa-solid fa-book-open"></i> Kho Lưu Trữ Từ Vựng Của Bạn</h1>
+        <p>Sắp xếp khoa học theo từng bài học • Tìm kiếm nhanh chóng • Cập nhật tự động</p>
+    </header>
+
+    <div class="control-panel">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Tìm kiếm từ vựng, ý nghĩa, ví dụ...">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </div>
+
+        <div class="filter-box">
+            <select id="lessonFilter">
+                <option value="all">Tất cả bài học</option>
+            </select>
+        </div>
+
+        <div class="upload-btn-wrapper">
+            <button class="btn-upload"><i class="fa-solid fa-file-import"></i> Tải file từ vựng (.json)</button>
+            <input type="file" id="fileInput" accept=".json">
+        </div>
+    </div>
+
+    <div class="vocab-grid" id="vocabGrid">
+        </div>
+</div>
+
+<script>
+    // 1. DỮ LIỆU MẪU BAN ĐẦU (Định dạng chuẩn để bạn chuẩn bị file upload)
+    let vocabularyData = [
+        {
+            "word": "Attain",
+            "level": "B2",
+            "ipa": "/eɪˈteɪn/",
+            "lesson": "Unit 1",
+            "meaning": "Đạt được, giành được (sau một quá trình nỗ lực)",
+            "example_en": "She worked hard to attain her goal.",
+            "example_vi": "Cô ấy đã làm việc chăm chỉ để đạt được mục tiêu của mình.",
+            "collocations": "attain a goal, attain a rank",
+            "word_family": "attainment (n), attainable (adj)",
+            "synonyms": "achieve, accomplish, reach",
+            "antonyms": "fail (thất bại), lose (đánh mất)"
+        },
+        {
+            "word": "Tenacity",
+            "level": "C1",
+            "ipa": "/təˈnæsəti/",
+            "lesson": "Unit 1",
+            "meaning": "Sự kiên trì, bền bỉ, kiên định",
+            "example_en": "You need great tenacity to achieve success.",
+            "example_vi": "Bạn cần sự kiên trì lớn để đạt được thành công.",
+            "collocations": "show tenacity, remarkable tenacity",
+            "word_family": "tenacious (adj), tenaciously (adv)",
+            "synonyms": "persistence, determination, perseverance",
+            "antonyms": "irresolution (sự do dự), weakness (sự yếu đuối)"
+        }
+    ];
+
+    // Khởi tạo ứng dụng khi trang web tải xong
+    document.addEventListener("DOMContentLoaded", () => {
+        // Kiểm tra xem trước đó người dùng có lưu dữ liệu trong trình duyệt chưa
+        const localData = localStorage.getItem('myVocabulary');
+        if (localData) {
+            vocabularyData = JSON.parse(localData);
+        }
+        
+        renderVocab(vocabularyData);
+        updateLessonFilter();
+
+        // Lắng nghe sự kiện tìm kiếm
+        document.getElementById('searchInput').addEventListener('input', filterData);
+        // Lắng nghe sự kiện chọn lọc bài học
+        document.getElementById('lessonFilter').addEventListener('change', filterData);
+        // Lắng nghe sự kiện upload file tự động
+        document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+    });
+
+    // 2. HÀM HIỂN THỊ TỪ VỰNG LÊN GIAO DIỆN
+    function renderVocab(data) {
+        const grid = document.getElementById('vocabGrid');
+        grid.innerHTML = '';
+
+        if(data.length === 0) {
+            grid.innerHTML = `<div class="no-result"><i class="fa-regular fa-face-frown"></i> Không tìm thấy từ vựng nào khớp với yêu cầu.</div>`;
+            return;
+        }
+
+        data.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'vocab-card';
+            card.innerHTML = `
+                <div class="card-header">
+                    <h3 class="word-title">${item.word}</h3>
+                    <span class="word-level">${item.level || 'B1+'}</span>
+                </div>
+                <div class="word-ipa">${item.ipa || ''}</div>
+                <div class="word-meaning">${item.meaning}</div>
+                <div class="word-example">
+                    <strong>Ex:</strong> ${item.example_en}
+                    <span>${item.example_vi || ''}</span>
+                </div>
+                <details class="word-details">
+                    <summary>Xem mở rộng (Word Map)</summary>
+                    <div class="details-content">
+                        ${item.collocations ? `<div class="detail-item"><strong>Collocations:</strong> ${item.collocations}</div>` : ''}
+                        ${item.word_family ? `<div class="detail-item"><strong>Word Family:</strong> ${item.word_family}</div>` : ''}
+                        ${item.synonyms ? `<div class="detail-item"><strong>Synonyms:</strong> ${item.synonyms}</div>` : ''}
+                        ${item.antonyms ? `<div class="detail-item"><strong>Antonyms:</strong> ${item.antonyms}</div>` : ''}
+                    </div>
+                </details>
+                <div><span class="lesson-badge"><i class="fa-solid fa-bookmark"></i> ${item.lesson || 'Chưa phân loại'}</span></div>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    // 3. HÀM CẬP NHẬT DANH SÁCH BÀI HỌC VÀO BỘ LỌC (FILTER)
+    function updateLessonFilter() {
+        const filter = document.getElementById('lessonFilter');
+        // Lấy danh sách các bài học duy nhất (không trùng lặp)
+        const lessons = [...new Set(vocabularyData.map(item => item.lesson || 'Chưa phân loại'))];
+        
+        // Giữ lại option đầu tiên
+        filter.innerHTML = '<option value="all">Tất cả bài học</option>';
+        
+        lessons.forEach(lesson => {
+            const option = document.createElement('option');
+            option.value = lesson;
+            option.textContent = lesson;
+            filter.appendChild(option);
+        });
+    }
+
+    // 4. HÀM TÌM KIẾM VÀ LỌC TỪ VỰNG TRỰC TIẾP
+    function filterData() {
+        const keyword = document.getElementById('searchInput').value.toLowerCase().trim();
+        const selectedLesson = document.getElementById('lessonFilter').value;
+
+        const filtered = vocabularyData.filter(item => {
+            const matchKeyword = 
+                item.word.toLowerCase().includes(keyword) || 
+                item.meaning.toLowerCase().includes(keyword) ||
+                item.example_en.toLowerCase().includes(keyword) ||
+                (item.synonyms && item.synonyms.toLowerCase().includes(keyword));
+            
+            const matchLesson = (selectedLesson === 'all') || (item.lesson === selectedLesson);
+
+            return matchKeyword && matchLesson;
+        });
+
+        renderVocab(filtered);
+    }
+
+    // 5. CHỨC NĂNG TỰ ĐỘNG UPDATE TỪ FILE (JSON)
+    function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const newData = JSON.parse(e.target.result);
+                
+                if (Array.isArray(newData)) {
+                    // Trộn dữ liệu mới vào dữ liệu cũ (hoặc thay thế nếu trùng từ)
+                    newData.forEach(newVocab => {
+                        const index = vocabularyData.findIndex(v => v.word.toLowerCase() === newVocab.word.toLowerCase());
+                        if (index !== -1) {
+                            // Nếu từ đã có sẵn, cập nhật thông tin mới
+                            vocabularyData[index] = newVocab;
+                        } else {
+                            // Nếu từ mới hoàn toàn, thêm vào danh sách
+                            vocabularyData.push(newVocab);
+                        }
+                    });
+
+                    // Lưu vào Bộ nhớ trình duyệt (LocalStorage) để không bị mất khi F5 trang
+                    localStorage.setItem('myVocabulary', JSON.stringify(vocabularyData));
+                    
+                    // Cập nhật lại giao diện
+                    renderVocab(vocabularyData);
+                    updateLessonFilter();
+                    
+                    alert(`Tải file thành công! Đã cập nhật/thêm mới ${newData.length} từ vựng.`);
+                } else {
+                    alert("Cấu trúc file không hợp lệ. File phải chứa một danh sách (mảng) các từ vựng.");
+                }
+            } catch (error) {
+                alert("Lỗi: Không thể đọc được file này. Hãy chắc chắn rằng đây là file định dạng .json chuẩn.");
+            }
+        };
+        reader.readAsText(file);
+    }
+</script>
+
+</body>
+</html>
