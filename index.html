@@ -222,6 +222,7 @@
 
         .card-tags {
             display: flex;
+            align-items: center;
             gap: 5px;
             margin-bottom: 10px;
         }
@@ -237,13 +238,28 @@
         .tag-sgk { background-color: #fcd5ce; color: #9a5446; }
         .tag-morong { background-color: #fec89a; color: #7f4f24; }
         .tag-toeic { background-color: #e8aeae; color: #fff; }
-        .tag-level { background-color: #ffb5a7; color: white; margin-left: auto;}
+        .tag-level { background-color: #ffb5a7; color: white; }
+
+        .btn-delete-item {
+            background: none;
+            border: none;
+            color: #e07a5f;
+            cursor: pointer;
+            margin-left: auto;
+            font-size: 14px;
+            padding: 0 5px;
+            transition: color 0.2s;
+        }
+
+        .btn-delete-item:hover {
+            color: #c94c2c;
+        }
 
         .word-title {
             font-size: 24px;
             font-weight: bold;
             color: #5c413c;
-            margin: 5px 0;
+            margin: 10px 0 5px 0;
         }
 
         .word-ipa {
@@ -332,9 +348,11 @@
         <p>Phân loại khoa học Lớp 10 - 11 - 12 & Chứng chỉ quốc tế • Thúc đẩy năng lực tiếng Anh</p>
     </header>
 
+    <!-- KHU VỰC DÀNH CHO GIÁO VIÊN -->
     <div class="admin-panel">
         <h3><i class="fa-solid fa-heart"></i> Cập Nhật Từ Vựng (Dành Cho Giáo Viên)</h3>
         <div class="upload-grid">
+            <!-- Khối 10 -->
             <div class="upload-zone">
                 <h4><i class="fa-solid fa-feather"></i> Tải lên Lớp 10</h4>
                 <div class="btn-group">
@@ -348,6 +366,7 @@
                     </div>
                 </div>
             </div>
+            <!-- Khối 11 -->
             <div class="upload-zone">
                 <h4><i class="fa-solid fa-feather"></i> Tải lên Lớp 11</h4>
                 <div class="btn-group">
@@ -361,6 +380,7 @@
                     </div>
                 </div>
             </div>
+            <!-- Khối 12 -->
             <div class="upload-zone">
                 <h4><i class="fa-solid fa-feather"></i> Tải lên Lớp 12</h4>
                 <div class="btn-group">
@@ -374,8 +394,9 @@
                     </div>
                 </div>
             </div>
+            <!-- Khối TOEIC -->
             <div class="upload-zone">
-                <h4><i class="fa-solid fa-graduation-cap"></i> LUYỆN THI TOEIC</h4>
+                <h4><i class="fa-solid fa-graduation-cap"></i> Khối TOEIC</h4>
                 <div class="btn-group">
                     <div class="upload-btn-wrapper">
                         <button class="btn-upload btn-toeic"><i class="fa-solid fa-cloud-arrow-up"></i> Tải lên từ vựng TOEIC</button>
@@ -386,6 +407,7 @@
         </div>
     </div>
 
+    <!-- THANH CÔNG CỤ TÌM KIẾM & BỘ LỌC CỦA HỌC SINH -->
     <div class="filter-panel">
         <div class="search-box">
             <input type="text" id="searchInput" placeholder="Tìm từ vựng, ý nghĩa, ví dụ...">
@@ -418,6 +440,7 @@
         </div>
     </div>
 
+    <!-- LƯỚI TỪ VỰNG -->
     <div class="vocab-grid" id="vocabGrid"></div>
 </div>
 
@@ -443,7 +466,7 @@
         grid.innerHTML = '';
 
         if(data.length === 0) {
-            grid.innerHTML = `<div class="no-result"><i class="fa-regular fa-face-frown"></i> Chưa có dữ liệu từ vựng nào được tải lên...</div>`;
+            grid.innerHTML = `<div class="no-result"><i class="fa-regular fa-face-frown"></i> Chưa có dữ liệu từ vựng nào được hiển thị...</div>`;
             return;
         }
 
@@ -451,7 +474,6 @@
             const card = document.createElement('div');
             card.className = 'vocab-card';
             
-            // Thiết lập nhãn lớp/loại từ linh hoạt bao gồm cả TOEIC
             let typeTagClass = 'tag-morong';
             if (item.type === 'SGK') typeTagClass = 'tag-sgk';
             if (item.type === 'TOEIC') typeTagClass = 'tag-toeic';
@@ -463,6 +485,11 @@
                     <span class="tag tag-grade">${gradeLabel}</span>
                     <span class="tag ${typeTagClass}">${item.type}</span>
                     <span class="tag tag-level">${item.level || 'B2'}</span>
+                    
+                    <!-- Nút xóa thủ công từng từ vựng -->
+                    <button onclick="deleteWord('${item.word}', '${item.grade}')" class="btn-delete-item" title="Xóa từ vựng này">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
                 </div>
                 <h3 class="word-title">${item.word}</h3>
                 <div class="word-ipa">${item.ipa || ''}</div>
@@ -515,6 +542,7 @@
         renderVocab(filtered);
     }
 
+    // Tính năng nạp file kết hợp chống trùng lặp thông minh (Upsert)
     function importVocab(inputElement, grade, type) {
         const file = inputElement.files[0];
         if (!file) return;
@@ -528,28 +556,53 @@
                         item.grade = grade;
                         item.type = type;
 
-                        // Định danh trùng từ theo cặp từ khóa + khối lớp
+                        // Đối chiếu chéo theo Tên Từ + Cấp Lớp để chống trùng lắp
                         const index = vocabularyData.findIndex(v => v.word.toLowerCase() === item.word.toLowerCase() && v.grade === grade);
                         if (index !== -1) {
-                            vocabularyData[index] = item;
+                            vocabularyData[index] = item; // Ghi đè cập nhật
                         } else {
-                            vocabularyData.push(item);
+                            vocabularyData.push(item); // Thêm mới
                         }
                     });
 
                     localStorage.setItem('thptVocabulary', JSON.stringify(vocabularyData));
+                    
+                    // Reset lại bộ lọc về "Tất cả" để hiển thị đầy đủ ngay sau khi nạp
+                    document.getElementById('gradeFilter').value = 'all';
+                    document.getElementById('typeFilter').value = 'all';
+                    document.getElementById('lessonFilter').value = 'all';
+                    document.getElementById('searchInput').value = '';
+
                     renderVocab(vocabularyData);
                     updateLessonFilter();
-                    alert(`Tải lên thành công! Đã cập nhật kho dữ liệu [Khóa ${grade}].`);
+                    alert(`Tải lên dữ liệu thành công! Đã tự động tối ưu hóa và chống trùng kho từ [Khóa ${grade}].`);
                 } else {
-                    alert("File JSON phải là một mảng danh sách từ vựng nha thầy/cô.");
+                    alert("Cấu trúc file JSON không hợp lệ (Phải là một mảng danh sách các từ).");
                 }
             } catch (err) {
-                alert("Lỗi cấu trúc file, vui lòng kiểm tra lại file định dạng JSON.");
+                alert("Lỗi cấu trúc dữ liệu, vui lòng kiểm tra kỹ định dạng file JSON.");
             }
         };
         reader.readAsText(file);
         inputElement.value = '';
+    }
+
+    // Tính năng tự tay xóa từng từ vựng trực tiếp trên giao diện
+    function deleteWord(wordName, gradeName) {
+        const confirmDelete = confirm(`Thầy/cô có chắc chắn muốn xóa từ "${wordName}" khỏi hệ thống không?`);
+        
+        if (confirmDelete) {
+            // Lọc loại bỏ từ vựng tương ứng khỏi cơ sở dữ liệu nội bộ
+            vocabularyData = vocabularyData.filter(item => 
+                !(item.word.toLowerCase() === wordName.toLowerCase() && item.grade === gradeName)
+            );
+
+            localStorage.setItem('thptVocabulary', JSON.stringify(vocabularyData));
+            
+            // Re-render cập nhật lại màn hình dựa theo trạng thái bộ lọc hiện tại
+            filterData(); 
+            updateLessonFilter(); 
+        }
     }
 </script>
 </body>
