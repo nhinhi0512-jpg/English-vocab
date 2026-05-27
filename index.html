@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản Lý Từ Vựng Thông Minh</title>
+    <title>Hệ Thống Phân Loại Từ Vựng THPT</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --primary-color: #2c3e50;
             --secondary-color: #3498db;
+            --sgk-color: #2ecc71;
+            --morong-color: #9b59b6;
             --bg-color: #f8f9fa;
             --card-bg: #ffffff;
             --text-color: #333;
@@ -23,7 +25,7 @@
         }
 
         .container {
-            max-width: 1100px;
+            max-width: 1200px;
             margin: 0 auto;
         }
 
@@ -37,22 +39,21 @@
             margin-bottom: 5px;
         }
 
-        /* Vùng công cụ điều khiển */
-        .control-panel {
+        /* Thanh tìm kiếm và bộ lọc của Học sinh */
+        .filter-panel {
             background: var(--card-bg);
             padding: 20px;
-            border-radius: 10px;
+            border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             display: flex;
             flex-wrap: wrap;
             gap: 15px;
             align-items: center;
-            justify-content: space-between;
             margin-bottom: 25px;
         }
 
         .search-box {
-            flex: 1;
+            flex: 2;
             min-width: 280px;
             position: relative;
         }
@@ -74,8 +75,14 @@
             color: #999;
         }
 
-        .filter-box select {
-            padding: 12px 20px;
+        .filter-select {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .filter-select select {
+            width: 100%;
+            padding: 12px 15px;
             border: 1px solid #ddd;
             border-radius: 8px;
             font-size: 16px;
@@ -83,43 +90,83 @@
             cursor: pointer;
         }
 
-        /* Nút Upload File ẩn thực tế để tùy biến giao diện đẹp hơn */
+        /* Bảng điều khiển tải lên dành cho Giáo viên */
+        .admin-panel {
+            background: #edf2f7;
+            border: 1px solid #cbd5e0;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .admin-panel h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .upload-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .upload-zone {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .upload-zone h4 {
+            margin: 0 0 10px 0;
+            color: #4a5568;
+            border-bottom: 2px solid #cbd5e0;
+            padding-bottom: 5px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
         .upload-btn-wrapper {
             position: relative;
             overflow: hidden;
-            display: inline-block;
+            flex: 1;
         }
 
         .btn-upload {
-            border: 2px dashed var(--secondary-color);
-            color: var(--secondary-color);
-            background-color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-size: 16px;
+            width: 100%;
+            padding: 10px 5px;
+            border-radius: 6px;
+            font-size: 13px;
             font-weight: bold;
             cursor: pointer;
-            transition: all 0.3s;
+            text-align: center;
+            border: 2px dashed;
+            background: white;
+            transition: all 0.2s;
         }
 
-        .btn-upload:hover {
-            background-color: var(--secondary-color);
-            color: white;
-        }
+        .btn-sgk { border-color: var(--sgk-color); color: var(--sgk-color); }
+        .btn-sgk:hover { background: var(--sgk-color); color: white; }
+
+        .btn-morong { border-color: var(--morong-color); color: var(--morong-color); }
+        .btn-morong:hover { background: var(--morong-color); color: white; }
 
         .upload-btn-wrapper input[type=file] {
-            font-size: 100px;
             position: absolute;
-            left: 0;
-            top: 0;
-            opacity: 0;
-            cursor: pointer;
+            left: 0; top: 0; opacity: 0;
+            cursor: pointer; height: 100%; width: 100%;
         }
 
-        /* Danh sách từ vựng dạng lưới */
+        /* Danh sách hiển thị từ vựng */
         .vocab-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
             gap: 20px;
         }
 
@@ -128,41 +175,42 @@
             border-radius: 12px;
             padding: 20px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            border-top: 5px solid var(--primary-color);
+            position: relative;
             transition: transform 0.2s;
         }
 
-        .vocab-card:hover {
-            transform: translateY(-5px);
-        }
+        .vocab-card:hover { transform: translateY(-5px); }
 
-        .card-header {
+        .card-tags {
             display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
+            gap: 5px;
             margin-bottom: 10px;
         }
+
+        .tag {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .tag-grade { background-color: var(--primary-color); }
+        .tag-sgk { background-color: var(--sgk-color); }
+        .tag-morong { background-color: var(--morong-color); }
+        .tag-level { background-color: #e74c3c; margin-left: auto;}
 
         .word-title {
             font-size: 22px;
             font-weight: bold;
             color: var(--primary-color);
-            margin: 0;
-        }
-
-        .word-level {
-            background: #e74c3c;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: bold;
+            margin: 5px 0;
         }
 
         .word-ipa {
             color: #7f8c8d;
             font-style: italic;
-            margin: 5px 0 10px 0;
+            margin-bottom: 10px;
         }
 
         .word-meaning {
@@ -189,13 +237,11 @@
             margin-top: 4px;
         }
 
-        /* Chi tiết mở rộng (Word Family, Synonyms...) */
         .word-details summary {
             font-size: 14px;
             color: var(--secondary-color);
             cursor: pointer;
             font-weight: bold;
-            user-select: none;
         }
 
         .details-content {
@@ -205,13 +251,8 @@
             padding-top: 10px;
         }
 
-        .detail-item {
-            margin-bottom: 8px;
-        }
-
-        .detail-item strong {
-            color: #555;
-        }
+        .detail-item { margin-bottom: 8px; }
+        .detail-item strong { color: #555; }
 
         .lesson-badge {
             display: inline-block;
@@ -220,8 +261,7 @@
             padding: 3px 10px;
             border-radius: 15px;
             font-size: 12px;
-            font-weight: 500;
-            margin-top: 10px;
+            margin-top: 12px;
         }
 
         .no-result {
@@ -237,230 +277,147 @@
 
 <div class="container">
     <header>
-        <h1><i class="fa-solid fa-book-open"></i> Kho Lưu Trữ Từ Vựng Của Bạn</h1>
-        <p>Sắp xếp khoa học theo từng bài học • Tìm kiếm nhanh chóng • Cập nhật tự động</p>
+        <h1><i class="fa-solid fa-graduation-cap"></i> Hệ Thống Quản Lý Từ Vựng THPT</h1>
+        <p>Phân loại khoa học Lớp 10 - 11 - 12 • Từ vựng SGK & Mở rộng cấp độ B1+</p>
     </header>
 
-    <div class="control-panel">
+    <!-- KHU VỰC DÀNH CHO GIÁO VIÊN: NÚT TẢI LÊN RIÊNG BIỆT -->
+    <div class="admin-panel">
+        <h3><i class="fa-solid fa-folder-plus"></i> Khu Vực Cập Nhật Từ Vựng (Dành Cho Giáo Viên)</h3>
+        <div class="upload-grid">
+            <!-- Khối 10 -->
+            <div class="upload-zone">
+                <h4><i class="fa-solid fa-bookmark"></i> Tải lên Lớp 10</h4>
+                <div class="btn-group">
+                    <div class="upload-btn-wrapper">
+                        <button class="btn-upload btn-sgk"><i class="fa-solid fa-book"></i> Từ SGK</button>
+                        <input type="file" onchange="importVocab(this, '10', 'SGK')" accept=".json">
+                    </div>
+                    <div class="upload-btn-wrapper">
+                        <button class="btn-upload btn-morong"><i class="fa-solid fa-arrow-up-right-from-square"></i> Mở rộng</button>
+                        <input type="file" onchange="importVocab(this, '10', 'Mở rộng')" accept=".json">
+                    </div>
+                </div>
+            </div>
+            <!-- Khối 11 -->
+            <div class="upload-zone">
+                <h4><i class="fa-solid fa-bookmark"></i> Tải lên Lớp 11</h4>
+                <div class="btn-group">
+                    <div class="upload-btn-wrapper">
+                        <button class="btn-upload btn-sgk"><i class="fa-solid fa-book"></i> Từ SGK</button>
+                        <input type="file" onchange="importVocab(this, '11', 'SGK')" accept=".json">
+                    </div>
+                    <div class="upload-btn-wrapper">
+                        <button class="btn-upload btn-morong"><i class="fa-solid fa-arrow-up-right-from-square"></i> Mở rộng</button>
+                        <input type="file" onchange="importVocab(this, '11', 'Mở rộng')" accept=".json">
+                    </div>
+                </div>
+            </div>
+            <!-- Khối 12 -->
+            <div class="upload-zone">
+                <h4><i class="fa-solid fa-bookmark"></i> Tải lên Lớp 12</h4>
+                <div class="btn-group">
+                    <div class="upload-btn-wrapper">
+                        <button class="btn-upload btn-sgk"><i class="fa-solid fa-book"></i> Từ SGK</button>
+                        <input type="file" onchange="importVocab(this, '12', 'SGK')" accept=".json">
+                    </div>
+                    <div class="upload-btn-wrapper">
+                        <button class="btn-upload btn-morong"><i class="fa-solid fa-arrow-up-right-from-square"></i> Mở rộng</button>
+                        <input type="file" onchange="importVocab(this, '12', 'Mở rộng')" accept=".json">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- THANH CÔNG CỤ TÌM KIẾM & BỘ LỌC CỦA HỌC SINH -->
+    <div class="filter-panel">
         <div class="search-box">
             <input type="text" id="searchInput" placeholder="Tìm kiếm từ vựng, ý nghĩa, ví dụ...">
             <i class="fa-solid fa-magnifying-glass"></i>
         </div>
 
-        <div class="filter-box">
+        <div class="filter-select">
+            <select id="gradeFilter">
+                <option value="all">Tất cả các lớp</option>
+                <option value="10">Lớp 10</option>
+                <option value="11">Lớp 11</option>
+                <option value="12">Lớp 12</option>
+            </select>
+        </div>
+
+        <div class="filter-select">
+            <select id="typeFilter">
+                <option value="all">Tất cả loại từ</option>
+                <option value="SGK">Từ vựng SGK</option>
+                <option value="Mở rộng">Từ vựng mở rộng</option>
+            </select>
+        </div>
+
+        <div class="filter-select">
             <select id="lessonFilter">
                 <option value="all">Tất cả bài học</option>
             </select>
         </div>
-
-        <div class="upload-btn-wrapper">
-            <button class="btn-upload"><i class="fa-solid fa-file-import"></i> Tải file từ vựng (.json)</button>
-            <input type="file" id="fileInput" accept=".json">
-        </div>
     </div>
 
-    <div class="vocab-grid" id="vocabGrid">
-        </div>
+    <!-- LƯỚI TỪ VỰNG -->
+    <div class="vocab-grid" id="vocabGrid"></div>
 </div>
 
 <script>
-    // 1. DỮ LIỆU MẪU BAN ĐẦU (Định dạng chuẩn để bạn chuẩn bị file upload)
-    let vocabularyData = [
-  {
-    "word": "Commute",
-    "level": "B1",
-    "ipa": "/kəˈmjuːt/",
-    "lesson": "Unit 1",
-    "meaning": "Đi làm hằng ngày (bằng xe buýt, tàu điện, ô tô giữa nhà và nơi làm việc).",
-    "example_en": "He commutes to work by train every day.",
-    "example_vi": "Anh ấy đi làm bằng tàu hỏa mỗi ngày.",
-    "collocations": "a long commute, daily commute",
-    "word_family": "commute (n) -> My daily commute takes one hour., commuter (n) -> The train was full of commuters.",
-    "synonyms": "travel, journey",
-    "antonyms": "stay at home (ở nhà), work remotely (làm việc từ xa)"
-  },
-  {
-    "word": "Attain",
-    "level": "B2",
-    "ipa": "/əˈteɪn/",
-    "lesson": "Unit 1",
-    "meaning": "Đạt được, giành được (sau một quá trình nỗ lực).",
-    "example_en": "She worked hard to attain her goal.",
-    "example_vi": "Cô ấy đã làm việc chăm chỉ để đạt được mục tiêu của mình.",
-    "collocations": "attain a goal, attain a rank, difficult to attain",
-    "word_family": "attainment (n) -> We celebrated her academic attainment., attainable (adj) -> Set goals that are easily attainable., unattainable (adj) -> Perfect English is an unattainable dream.",
-    "synonyms": "achieve, accomplish, reach, obtain",
-    "antonyms": "fail (Thất bại - Dùng khi không đạt được kết quả mong muốn hoặc trượt một kỳ thi), lose (Đánh mất - Dùng khi mất đi thứ gì đó đang sở hữu hoặc thua một trận đấu)"
-  },
-  {
-    "word": "Horizon",
-    "level": "B2",
-    "ipa": "/həˈraɪzn/",
-    "lesson": "Unit 1",
-    "meaning": "Đường chân trời, tầm chân trời; (nghĩa bóng) tầm hiểu biết/tầm nhìn.",
-    "example_en": "The sun sank below the horizon.",
-    "example_vi": "Mặt trời lặn xuống dưới đường chân trời.",
-    "collocations": "broaden/expand one's horizons, on the horizon",
-    "word_family": "horizontal (adj) -> Please draw a horizontal line., horizontally (adv) -> Hold the phone horizontally to take photos.",
-    "synonyms": "skyline, vista, outlook",
-    "antonyms": ""
-  },
-  {
-    "word": "Heritage",
-    "level": "B2",
-    "ipa": "/ˈherɪtɪdʒ/",
-    "lesson": "Unit 1",
-    "meaning": "Di sản (v văn hóa, truyền thống, thiên nhiên).",
-    "example_en": "We must protect our cultural heritage.",
-    "example_vi": "Chúng ta phải bảo vệ di sản văn hóa của mình.",
-    "collocations": "cultural heritage, national heritage, rich heritage",
-    "word_family": "inherit (v) -> She will inherit the old house., inheritance (n) -> He spent all his inheritance on cars.",
-    "synonyms": "legacy, inheritance, tradition",
-    "antonyms": ""
-  },
-  {
-    "word": "Tolerance",
-    "level": "B2",
-    "ipa": "/ˈtɒlərəns/",
-    "lesson": "Unit 1",
-    "meaning": "Sự bao dung, lòng vị tha, sự khoan dung.",
-    "example_en": "The school promotes tolerance among students.",
-    "example_vi": "Nhà trường thúc đẩy sự khoan dung giữa các học sinh.",
-    "collocations": "zero tolerance, religious tolerance",
-    "word_family": "tolerate (v) -> I cannot tolerate your bad behavior anymore., tolerant (adj) -> My parents are very tolerant., intolerable (adj) -> The heat in this room is intolerable.",
-    "synonyms": "acceptance, open-mindedness, patience",
-    "antonyms": "intolerance (Sự cố chấp, không khoan dung - Dùng khi một người từ chối chấp nhận các quan điểm hoặc hành vi khác biệt với mình), prejudice (Định kiến - Ý kiến tiêu cực được hình thành từ trước mà không có lý do hoặc trải nghiệm thực tế)"
-  },
-  {
-    "word": "Literally",
-    "level": "B2",
-    "ipa": "/ˈlɪtərəli/",
-    "lesson": "Unit 1",
-    "meaning": "Theo nghĩa đen, thật sự là.",
-    "example_en": "The word 'biography' literally means 'life writing'.",
-    "example_vi": "Từ 'biography' theo nghĩa đen có nghĩa là 'viết về cuộc đời'.",
-    "collocations": "take something literally, literally millions",
-    "word_family": "literal (adj) -> This is the literal translation of the poem., literacy (n) -> The country has a high literacy rate.",
-    "synonyms": "exactly, precisely, actually, truly",
-    "antonyms": "figuratively (Theo nghĩa bóng - Dùng khi diễn đạt một ẩn dụ, hình ảnh so sánh chứ không phải sự thật trần trụi), virtually (Hầu như, gần như - Dùng để diễn tả một việc gần như là hoàn toàn đúng nhưng không phải chính xác 100%)"
-  },
-  {
-    "word": "Cosmopolitan",
-    "level": "C1",
-    "ipa": "/ˌkɒzməˈpɒlɪtən/",
-    "lesson": "Unit 1",
-    "meaning": "Có tính quốc tế, đa văn hóa (gồm người từ nhiều nơi trên thế giới).",
-    "example_en": "New York is a very cosmopolitan city.",
-    "example_vi": "New York là một thành phố mang tính quốc tế.",
-    "collocations": "cosmopolitan atmosphere, cosmopolitan outlook",
-    "word_family": "cosmopolitan (n) -> He is a true cosmopolitan who loves traveling., cosmopolitanism (n) -> The university encourages cosmopolitanism.",
-    "synonyms": "international, multicultural, global",
-    "antonyms": "provincial (Mang tính tỉnh lẻ, hẹp hòi - Dùng để miêu tả những nơi hoặc quan điểm hạn hẹp, thiếu tính mở rộng với thế giới), local (Mang tính địa phương - Chỉ giới hạn trong một vùng, một xã hội nhỏ hẹp nhất định)"
-  },
-  {
-    "word": "Tenacity",
-    "level": "C1",
-    "ipa": "/təˈnæsəti/",
-    "lesson": "Unit 1",
-    "meaning": "Sự kiên trì, bền bỉ, kiên định.",
-    "example_en": "You need great tenacity to achieve success.",
-    "example_vi": "Bạn cần sự kiên trì lớn để đạt được thành công.",
-    "collocations": "show tenacity, remarkable tenacity",
-    "word_family": "tenacious (adj) -> She is a tenacious student who never gives up., tenaciously (adv) -> He fought tenaciously for his rights.",
-    "synonyms": "persistence, determination, perseverance",
-    "antonyms": "irresolution (Sự do dự, thiếu quyết đoán - Chỉ trạng thái không thể đưa ra quyết định vững vàng), weakness (Sự yếu đuối - Thiếu sức mạnh tinh thần hoặc thể chất để duy trì hành động)"
-  },
-  {
-    "word": "Ironic",
-    "level": "C1",
-    "ipa": "/aɪˈrɒnɪk/",
-    "lesson": "Unit 1",
-    "meaning": "Mỉa mai, trớ trêu (ngược lại với điều kỳ vọng).",
-    "example_en": "It is ironic that the lifeguard cannot swim.",
-    "example_vi": "Thật trớ trêu là nhân viên cứu hộ lại không biết bơi.",
-    "collocations": "ironic twist, ironic smile",
-    "word_family": "irony (n) -> The irony is that he lost money while trying to save it., ironically (adv) -> Ironically, the shop closed just as we arrived.",
-    "synonyms": "sarcastic, paradoxical, mocking",
-    "antonyms": "sincere (Chân thành, thật tâm - Diễn tả lời nói, hành động xuất phát từ lòng thật thà, không có ẩn ý hay mỉa mai), predictable (Có thể đoán trước được - Mọi chuyện diễn ra đúng như dự tính, không có yếu tố bất ngờ hay ngược đời)"
-  },
-  {
-    "word": "Adversely",
-    "level": "C1",
-    "ipa": "/ˈædvɜːsli/",
-    "lesson": "Unit 1",
-    "meaning": "Một cách bất lợi, tiêu cực, có hại.",
-    "example_en": "The bad weather adversely affected the crop.",
-    "example_vi": "Thời tiết xấu đã ảnh hưởng tiêu cực đến vụ mùa.",
-    "collocations": "adversely affect, adversely influence",
-    "word_family": "adverse (adj) -> Dirt has an adverse effect on your health., adversity (n) -> He showed courage in the face of adversity.",
-    "synonyms": "negatively, unfavorably, poorly",
-    "antonyms": "favorably (Một cách thuận lợi, tốt đẹp - Dùng khi kết quả mang lại sự tích cực, có lợi cho chủ thể), beneficially (Một cách có ích - Mang lại lợi ích, giúp cải thiện tình hình tốt lên)"
-  },
-  {
-    "word": "Conservationist",
-    "level": "C1",
-    "ipa": "/ˌkɒnsəˈveɪʃənɪst/",
-    "lesson": "Unit 1",
-    "meaning": "Nhà bảo tồn thiên nhiên, người bảo vệ môi trường.",
-    "example_en": "The conservationist is working to save the forest.",
-    "example_vi": "Nhà bảo tồn đang làm việc để cứu khu rừng.",
-    "collocations": "wildlife conservationist, nature conservationist",
-    "word_family": "conserve (v) -> We must conserve water., conservation (n) -> Energy conservation is very important.",
-    "synonyms": "environmentalist, preservationist",
-    "antonyms": "destroyer (Kẻ phá hoại - Người hoặc thứ làm tổn hại, phá hủy cấu trúc tự nhiên), polluter (Kẻ gây ô nhiễm - Người hoặc doanh nghiệp xả chất thải gây hại ra môi trường)"
-  },
-  {
-    "word": "Surreal",
-    "level": "C2",
-    "ipa": "/sə·ˈri·əl/",
-    "lesson": "Unit 1",
-    "meaning": "Kỳ ảo, siêu thực, như một giấc mơ (rất kỳ lạ).",
-    "example_en": "Driving through the empty city felt surreal.",
-    "example_vi": "Lái xe xuyên qua thành phố vắng người cảm giác thật kỳ ảo.",
-    "collocations": "surreal experience, surreal quality",
-    "word_family": "surrealism (n) -> He is studying French surrealism in art., surrealist (n) -> Salvador Dalí was a famous surrealist.",
-    "synonyms": "dreamlike, bizarre, weird, fantastic",
-    "antonyms": "real (Thực tế, có thật - Thứ hiện hữu rõ ràng trong đời thực), ordinary (Bình thường, tầm thường - Diễn tả sự vật, hiện tượng quen thuộc diễn ra hằng ngày, không có gì kỳ lạ)"
-  }
-];
+    // Dữ liệu bộ lõi hệ thống
+    let vocabularyData = [];
 
-    // Khởi tạo ứng dụng khi trang web tải xong
     document.addEventListener("DOMContentLoaded", () => {
-        // Kiểm tra xem trước đó người dùng có lưu dữ liệu trong trình duyệt chưa
-        const localData = localStorage.getItem('myVocabulary');
+        const localData = localStorage.getItem('thptVocabulary');
         if (localData) {
             vocabularyData = JSON.parse(localData);
+        } else {
+            // Nạp sẵn vài từ mẫu ban đầu để giao diện không bị trống
+            vocabularyData = [
+                {
+                    "word": "Commute", "level": "B1", "ipa": "/kəˈmjuːt/", "grade": "12", "type": "SGK", "lesson": "Unit 1",
+                    "meaning": "Đi làm hằng ngày bằng phương tiện công cộng công sở.",
+                    "example_en": "He commutes to work by train every day.", "example_vi": "Anh ấy đi làm bằng tàu hỏa mỗi ngày.",
+                    "collocations": "daily commute", "word_family": "commuter (n)", "synonyms": "travel", "antonyms": ""
+                }
+            ];
         }
-        
         renderVocab(vocabularyData);
         updateLessonFilter();
 
-        // Lắng nghe sự kiện tìm kiếm
+        // Đăng ký sự kiện lọc tìm kiếm trực tiếp
         document.getElementById('searchInput').addEventListener('input', filterData);
-        // Lắng nghe sự kiện chọn lọc bài học
+        document.getElementById('gradeFilter').addEventListener('change', filterData);
+        document.getElementById('typeFilter').addEventListener('change', filterData);
         document.getElementById('lessonFilter').addEventListener('change', filterData);
-        // Lắng nghe sự kiện upload file tự động
-        document.getElementById('fileInput').addEventListener('change', handleFileUpload);
     });
 
-    // 2. HÀM HIỂN THỊ TỪ VỰNG LÊN GIAO DIỆN
+    // Hàm hiển thị danh sách thẻ từ vựng
     function renderVocab(data) {
         const grid = document.getElementById('vocabGrid');
         grid.innerHTML = '';
 
         if(data.length === 0) {
-            grid.innerHTML = `<div class="no-result"><i class="fa-regular fa-face-frown"></i> Không tìm thấy từ vựng nào khớp với yêu cầu.</div>`;
+            grid.innerHTML = `<div class="no-result"><i class="fa-regular fa-face-frown"></i> Không tìm thấy từ vựng nào khớp bộ lọc.</div>`;
             return;
         }
 
         data.forEach(item => {
             const card = document.createElement('div');
             card.className = 'vocab-card';
+            
+            // Định dạng kiểu thẻ theo loại từ
+            const typeTagClass = item.type === 'SGK' ? 'tag-sgk' : 'tag-morong';
+
             card.innerHTML = `
-                <div class="card-header">
-                    <h3 class="word-title">${item.word}</h3>
-                    <span class="word-level">${item.level || 'B1+'}</span>
+                <div class="card-tags">
+                    <span class="tag tag-grade">Lớp ${item.grade}</span>
+                    <span class="tag ${typeTagClass}">${item.type}</span>
+                    <span class="tag tag-level">${item.level || 'B1+'}</span>
                 </div>
+                <h3 class="word-title">${item.word}</h3>
                 <div class="word-ipa">${item.ipa || ''}</div>
                 <div class="word-meaning">${item.meaning}</div>
                 <div class="word-example">
@@ -476,90 +433,81 @@
                         ${item.antonyms ? `<div class="detail-item"><strong>Antonyms:</strong> ${item.antonyms}</div>` : ''}
                     </div>
                 </details>
-                <div><span class="lesson-badge"><i class="fa-solid fa-bookmark"></i> ${item.lesson || 'Chưa phân loại'}</span></div>
+                <div><span class="lesson-badge"><i class="fa-solid fa-bookmark"></i> ${item.lesson || 'General'}</span></div>
             `;
             grid.appendChild(card);
         });
     }
 
-    // 3. HÀM CẬP NHẬT DANH SÁCH BÀI HỌC VÀO BỘ LỌC (FILTER)
+    // Tự động phân tích danh sách bài học dựa trên dữ liệu đang có
     function updateLessonFilter() {
         const filter = document.getElementById('lessonFilter');
-        // Lấy danh sách các bài học duy nhất (không trùng lặp)
-        const lessons = [...new Set(vocabularyData.map(item => item.lesson || 'Chưa phân loại'))];
-        
-        // Giữ lại option đầu tiên
+        const lessons = [...new Set(vocabularyData.map(item => item.lesson || 'General'))];
         filter.innerHTML = '<option value="all">Tất cả bài học</option>';
-        
         lessons.forEach(lesson => {
             const option = document.createElement('option');
-            option.value = lesson;
-            option.textContent = lesson;
+            option.value = lesson; option.textContent = lesson;
             filter.appendChild(option);
         });
     }
 
-    // 4. HÀM TÌM KIẾM VÀ LỌC TỪ VỰNG TRỰC TIẾP
+    // Bộ lọc logic đa chức năng
     function filterData() {
         const keyword = document.getElementById('searchInput').value.toLowerCase().trim();
+        const selectedGrade = document.getElementById('gradeFilter').value;
+        const selectedType = document.getElementById('typeFilter').value;
         const selectedLesson = document.getElementById('lessonFilter').value;
 
         const filtered = vocabularyData.filter(item => {
-            const matchKeyword = 
-                item.word.toLowerCase().includes(keyword) || 
-                item.meaning.toLowerCase().includes(keyword) ||
-                item.example_en.toLowerCase().includes(keyword) ||
-                (item.synonyms && item.synonyms.toLowerCase().includes(keyword));
-            
+            const matchKeyword = item.word.toLowerCase().includes(keyword) || item.meaning.toLowerCase().includes(keyword);
+            const matchGrade = (selectedGrade === 'all') || (item.grade === selectedGrade);
+            const matchType = (selectedType === 'all') || (item.type === selectedType);
             const matchLesson = (selectedLesson === 'all') || (item.lesson === selectedLesson);
 
-            return matchKeyword && matchLesson;
+            return matchKeyword && matchGrade && matchType && matchLesson;
         });
 
         renderVocab(filtered);
     }
 
-    // 5. CHỨC NĂNG TỰ ĐỘNG UPDATE TỪ FILE (JSON)
-    function handleFileUpload(event) {
-        const file = event.target.files[0];
+    // HÀM TỰ ĐỘNG IMPORT PHÂN LOẠI THEO TỪNG NÚT BẤM CỦA GIÁO VIÊN
+    function importVocab(inputElement, grade, type) {
+        const file = inputElement.files[0];
         if (!file) return;
 
         const reader = new FileReader();
         reader.onload = function(e) {
             try {
                 const newData = JSON.parse(e.target.result);
-                
                 if (Array.isArray(newData)) {
-                    // Trộn dữ liệu mới vào dữ liệu cũ (hoặc thay thế nếu trùng từ)
-                    newData.forEach(newVocab => {
-                        const index = vocabularyData.findIndex(v => v.word.toLowerCase() === newVocab.word.toLowerCase());
+                    newData.forEach(item => {
+                        // Gắn thẻ tự động thuộc tính lớp và loại từ dựa theo nút bấm
+                        item.grade = grade;
+                        item.type = type;
+
+                        // Đồng bộ hóa đè nếu trùng lặp từ vựng
+                        const index = vocabularyData.findIndex(v => v.word.toLowerCase() === item.word.toLowerCase() && v.grade === grade);
                         if (index !== -1) {
-                            // Nếu từ đã có sẵn, cập nhật thông tin mới
-                            vocabularyData[index] = newVocab;
+                            vocabularyData[index] = item;
                         } else {
-                            // Nếu từ mới hoàn toàn, thêm vào danh sách
-                            vocabularyData.push(newVocab);
+                            vocabularyData.push(item);
                         }
                     });
 
-                    // Lưu vào Bộ nhớ trình duyệt (LocalStorage) để không bị mất khi F5 trang
-                    localStorage.setItem('myVocabulary', JSON.stringify(vocabularyData));
-                    
-                    // Cập nhật lại giao diện
+                    localStorage.setItem('thptVocabulary', JSON.stringify(vocabularyData));
                     renderVocab(vocabularyData);
                     updateLessonFilter();
-                    
-                    alert(`Tải file thành công! Đã cập nhật/thêm mới ${newData.length} từ vựng.`);
+                    alert(`Đã tải thành công bộ từ vựng [Lớp ${grade} - Hoạt động: ${type}]. Hệ thống đã cập nhật tổng số từ!`);
                 } else {
-                    alert("Cấu trúc file không hợp lệ. File phải chứa một danh sách (mảng) các từ vựng.");
+                    alert("Cấu trúc file JSON chưa chính xác, phải là một danh sách dữ liệu.");
                 }
-            } catch (error) {
-                alert("Lỗi: Không thể đọc được file này. Hãy chắc chắn rằng đây là file định dạng .json chuẩn.");
+            } catch (err) {
+                alert("Không thể đọc được file, vui lòng kiểm tra lại cấu trúc file định dạng JSON.");
             }
         };
         reader.readAsText(file);
+        inputElement.value = ''; // Reset input để có thể tải lại cùng một file nếu sửa đổi
     }
 </script>
-
 </body>
 </html>
