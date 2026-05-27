@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ Thống Phân Loại Từ Vựng THPT</title>
+    <title>Hệ Thống Phân Loại Từ Vựng THPT & TOEIC</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -11,6 +11,7 @@
             --secondary-color: #ffb5a7; /* Hồng pastel ấm áp */
             --sgk-color: #fcd5ce; /* Hồng pastel nhạt cho từ SGK */
             --morong-color: #fec89a; /* Vàng cam pastel cho từ Mở rộng */
+            --toeic-color: #e8aeae; /* Màu hồng đất nhạt riêng cho nhãn TOEIC */
             --bg-color: #fffbf2; /* Nền vàng kem siêu nhạt, dịu mắt */
             --card-bg: #ffffff;
             --text-color: #4a4a4a;
@@ -136,7 +137,7 @@
 
         .upload-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
             gap: 15px;
         }
 
@@ -146,6 +147,9 @@
             border-radius: 12px;
             border: 1px solid #ffe8cc;
             box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
         .upload-zone h4 {
@@ -184,6 +188,9 @@
 
         .btn-morong { border-color: #fec89a; color: #d4a373; background-color: #fff8f0; }
         .btn-morong:hover { background: #fec89a; color: white; }
+
+        .btn-toeic { border-color: #e8aeae; color: #9c5c5c; background-color: #fff5f5; padding: 10px 0; }
+        .btn-toeic:hover { background: #e8aeae; color: white; }
 
         .upload-btn-wrapper input[type=file] {
             position: absolute;
@@ -229,6 +236,7 @@
         .tag-grade { background-color: #faedcd; color: #6c584c; }
         .tag-sgk { background-color: #fcd5ce; color: #9a5446; }
         .tag-morong { background-color: #fec89a; color: #7f4f24; }
+        .tag-toeic { background-color: #e8aeae; color: #fff; }
         .tag-level { background-color: #ffb5a7; color: white; margin-left: auto;}
 
         .word-title {
@@ -320,8 +328,8 @@
 
 <div class="container">
     <header>
-        <h1><i class="fa-solid fa-star"></i> Hệ Thống Quản Lý Từ Vựng THPT</h1>
-        <p>Phân loại khoa học Lớp 10 - 11 - 12 • Thúc đẩy năng lực từ vựng tiếng Anh</p>
+        <h1><i class="fa-solid fa-star"></i> Hệ Thống Quản Lý Từ Vựng THPT & TOEIC</h1>
+        <p>Phân loại khoa học Lớp 10 - 11 - 12 & Chứng chỉ quốc tế • Thúc đẩy năng lực tiếng Anh</p>
     </header>
 
     <div class="admin-panel">
@@ -366,6 +374,15 @@
                     </div>
                 </div>
             </div>
+            <div class="upload-zone">
+                <h4><i class="fa-solid fa-graduation-cap"></i> Khối TOEIC</h4>
+                <div class="btn-group">
+                    <div class="upload-btn-wrapper">
+                        <button class="btn-upload btn-toeic"><i class="fa-solid fa-cloud-arrow-up"></i> Tải lên từ vựng TOEIC</button>
+                        <input type="file" onchange="importVocab(this, 'TOEIC', 'TOEIC')" accept=".json">
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -377,10 +394,11 @@
 
         <div class="filter-select">
             <select id="gradeFilter">
-                <option value="all">✨ Tất cả các lớp</option>
+                <option value="all">✨ Tất cả các khóa</option>
                 <option value="10">Lớp 10</option>
                 <option value="11">Lớp 11</option>
                 <option value="12">Lớp 12</option>
+                <option value="TOEIC">🎯 Luyện thi TOEIC</option>
             </select>
         </div>
 
@@ -389,6 +407,7 @@
                 <option value="all">🌸 Tất cả loại từ</option>
                 <option value="SGK">Từ vựng SGK</option>
                 <option value="Mở rộng">Từ vựng mở rộng</option>
+                <option value="TOEIC">Từ vựng TOEIC</option>
             </select>
         </div>
 
@@ -403,7 +422,7 @@
 </div>
 
 <script>
-    let vocabularyData = []; // Đã dọn sạch từ vựng mẫu ban đầu ở đây
+    let vocabularyData = [];
 
     document.addEventListener("DOMContentLoaded", () => {
         const localData = localStorage.getItem('thptVocabulary');
@@ -424,7 +443,7 @@
         grid.innerHTML = '';
 
         if(data.length === 0) {
-            grid.innerHTML = `<div class="no-result"><i class="fa-regular fa-face-frown"></i> Chưa có từ vựng nào được tải lên hệ thống...</div>`;
+            grid.innerHTML = `<div class="no-result"><i class="fa-regular fa-face-frown"></i> Chưa có dữ liệu từ vựng nào được tải lên...</div>`;
             return;
         }
 
@@ -432,13 +451,18 @@
             const card = document.createElement('div');
             card.className = 'vocab-card';
             
-            const typeTagClass = item.type === 'SGK' ? 'tag-sgk' : 'tag-morong';
+            // Thiết lập nhãn lớp/loại từ linh hoạt bao gồm cả TOEIC
+            let typeTagClass = 'tag-morong';
+            if (item.type === 'SGK') typeTagClass = 'tag-sgk';
+            if (item.type === 'TOEIC') typeTagClass = 'tag-toeic';
+
+            const gradeLabel = item.grade === 'TOEIC' ? 'TOEIC' : `Lớp ${item.grade}`;
 
             card.innerHTML = `
                 <div class="card-tags">
-                    <span class="tag tag-grade">Lớp ${item.grade}</span>
+                    <span class="tag tag-grade">${gradeLabel}</span>
                     <span class="tag ${typeTagClass}">${item.type}</span>
-                    <span class="tag tag-level">${item.level || 'B1'}</span>
+                    <span class="tag tag-level">${item.level || 'B2'}</span>
                 </div>
                 <h3 class="word-title">${item.word}</h3>
                 <div class="word-ipa">${item.ipa || ''}</div>
@@ -504,6 +528,7 @@
                         item.grade = grade;
                         item.type = type;
 
+                        // Định danh trùng từ theo cặp từ khóa + khối lớp
                         const index = vocabularyData.findIndex(v => v.word.toLowerCase() === item.word.toLowerCase() && v.grade === grade);
                         if (index !== -1) {
                             vocabularyData[index] = item;
@@ -515,12 +540,12 @@
                     localStorage.setItem('thptVocabulary', JSON.stringify(vocabularyData));
                     renderVocab(vocabularyData);
                     updateLessonFilter();
-                    alert(`Tải lên thành công rồi nhé! Đã cập nhật kho từ vựng [Lớp ${grade} - ${type}].`);
+                    alert(`Tải lên thành công! Đã cập nhật kho dữ liệu [Khóa ${grade}].`);
                 } else {
                     alert("File JSON phải là một mảng danh sách từ vựng nha thầy/cô.");
                 }
             } catch (err) {
-                alert("Lỗi file rồi, vui lòng kiểm tra lại file JSON nha.");
+                alert("Lỗi cấu trúc file, vui lòng kiểm tra lại file định dạng JSON.");
             }
         };
         reader.readAsText(file);
