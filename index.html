@@ -7,13 +7,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
-            --sgk-color: #2ecc71;
-            --morong-color: #9b59b6;
-            --bg-color: #f8f9fa;
+            --primary-color: #d4a373; /* Nâu vàng pastel đậm cho chữ tiêu đề chính */
+            --secondary-color: #ffb5a7; /* Hồng pastel ấm áp */
+            --sgk-color: #fcd5ce; /* Hồng pastel nhạt cho từ SGK */
+            --morong-color: #fec89a; /* Vàng cam pastel cho từ Mở rộng */
+            --bg-color: #fffbf2; /* Nền vàng kem siêu nhạt, dịu mắt */
             --card-bg: #ffffff;
-            --text-color: #333;
+            --text-color: #4a4a4a;
+            --border-radius: 16px;
         }
 
         body {
@@ -32,24 +33,36 @@
         header {
             text-align: center;
             margin-bottom: 30px;
+            background: linear-gradient(135deg, #fcd5ce 0%, #fec89a 100%);
+            padding: 30px 20px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 15px rgba(255, 181, 167, 0.2);
         }
 
         header h1 {
-            color: var(--primary-color);
-            margin-bottom: 5px;
+            color: #5c413c;
+            margin: 0 0 5px 0;
+            font-size: 28px;
+        }
+
+        header p {
+            color: #6b514c;
+            margin: 0;
+            font-weight: 500;
         }
 
         /* Thanh tìm kiếm và bộ lọc của Học sinh */
         .filter-panel {
             background: var(--card-bg);
             padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 10px rgba(212, 163, 115, 0.1);
             display: flex;
             flex-wrap: wrap;
             gap: 15px;
             align-items: center;
             margin-bottom: 25px;
+            border: 1px solid #f9eed6;
         }
 
         .search-box {
@@ -61,10 +74,18 @@
         .search-box input {
             width: 100%;
             padding: 12px 40px 12px 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
+            border: 2px solid #fcd5ce;
+            border-radius: 10px;
             font-size: 16px;
             box-sizing: border-box;
+            outline: none;
+            transition: all 0.2s;
+            background-color: #fffdf9;
+        }
+
+        .search-box input:focus {
+            border-color: #ffb5a7;
+            box-shadow: 0 0 8px rgba(255, 181, 167, 0.4);
         }
 
         .search-box i {
@@ -72,7 +93,7 @@
             right: 15px;
             top: 50%;
             transform: translateY(-50%);
-            color: #999;
+            color: #d4a373;
         }
 
         .filter-select {
@@ -83,25 +104,31 @@
         .filter-select select {
             width: 100%;
             padding: 12px 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
+            border: 2px solid #fec89a;
+            border-radius: 10px;
             font-size: 16px;
             background-color: white;
             cursor: pointer;
+            outline: none;
+            color: #5c413c;
+        }
+
+        .filter-select select:focus {
+            border-color: #ffb5a7;
         }
 
         /* Bảng điều khiển tải lên dành cho Giáo viên */
         .admin-panel {
-            background: #edf2f7;
-            border: 1px solid #cbd5e0;
+            background: #fff5e6;
+            border: 2px dashed #ffdbb5;
             padding: 20px;
-            border-radius: 12px;
+            border-radius: var(--border-radius);
             margin-bottom: 30px;
         }
 
         .admin-panel h3 {
             margin-top: 0;
-            color: var(--primary-color);
+            color: #6b514c;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -116,14 +143,15 @@
         .upload-zone {
             background: white;
             padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            border: 1px solid #ffe8cc;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
         }
 
         .upload-zone h4 {
             margin: 0 0 10px 0;
-            color: #4a5568;
-            border-bottom: 2px solid #cbd5e0;
+            color: #5c413c;
+            border-bottom: 2px solid #fff0db;
             padding-bottom: 5px;
         }
 
@@ -141,21 +169,21 @@
         .btn-upload {
             width: 100%;
             padding: 10px 5px;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 13px;
             font-weight: bold;
             cursor: pointer;
             text-align: center;
-            border: 2px dashed;
+            border: 2px solid;
             background: white;
             transition: all 0.2s;
         }
 
-        .btn-sgk { border-color: var(--sgk-color); color: var(--sgk-color); }
-        .btn-sgk:hover { background: var(--sgk-color); color: white; }
+        .btn-sgk { border-color: #ffb5a7; color: #e07a5f; background-color: #fff0ed; }
+        .btn-sgk:hover { background: #ffb5a7; color: white; }
 
-        .btn-morong { border-color: var(--morong-color); color: var(--morong-color); }
-        .btn-morong:hover { background: var(--morong-color); color: white; }
+        .btn-morong { border-color: #fec89a; color: #d4a373; background-color: #fff8f0; }
+        .btn-morong:hover { background: #fec89a; color: white; }
 
         .upload-btn-wrapper input[type=file] {
             position: absolute;
@@ -172,14 +200,18 @@
 
         .vocab-card {
             background: var(--card-bg);
-            border-radius: 12px;
+            border-radius: var(--border-radius);
             padding: 20px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 12px rgba(212, 163, 115, 0.08);
             position: relative;
-            transition: transform 0.2s;
+            transition: all 0.2s;
+            border: 1px solid #fff5e1;
         }
 
-        .vocab-card:hover { transform: translateY(-5px); }
+        .vocab-card:hover { 
+            transform: translateY(-5px);
+            box-shadow: 0 6px 18px rgba(255, 181, 167, 0.25);
+        }
 
         .card-tags {
             display: flex;
@@ -188,87 +220,98 @@
         }
 
         .tag {
-            padding: 2px 8px;
-            border-radius: 4px;
+            padding: 3px 10px;
+            border-radius: 20px;
             font-size: 11px;
             font-weight: bold;
-            color: white;
         }
 
-        .tag-grade { background-color: var(--primary-color); }
-        .tag-sgk { background-color: var(--sgk-color); }
-        .tag-morong { background-color: var(--morong-color); }
-        .tag-level { background-color: #e74c3c; margin-left: auto;}
+        .tag-grade { background-color: #faedcd; color: #6c584c; }
+        .tag-sgk { background-color: #fcd5ce; color: #9a5446; }
+        .tag-morong { background-color: #fec89a; color: #7f4f24; }
+        .tag-level { background-color: #ffb5a7; color: white; margin-left: auto;}
 
         .word-title {
-            font-size: 22px;
+            font-size: 24px;
             font-weight: bold;
-            color: var(--primary-color);
+            color: #5c413c;
             margin: 5px 0;
         }
 
         .word-ipa {
-            color: #7f8c8d;
+            color: #a3918f;
             font-style: italic;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            font-size: 15px;
         }
 
         .word-meaning {
             font-size: 16px;
             font-weight: 600;
-            color: #2c3e50;
+            color: #4a332f;
             margin-bottom: 12px;
-            border-left: 3px solid var(--secondary-color);
-            padding-left: 8px;
+            border-left: 4px solid #ffb5a7;
+            padding-left: 10px;
         }
 
         .word-example {
-            background: #f9f9f9;
-            padding: 10px;
-            border-radius: 6px;
+            background: #fffdf9;
+            padding: 12px;
+            border-radius: 10px;
             font-size: 14px;
             margin-bottom: 15px;
+            border: 1px dashed #fcd5ce;
         }
 
         .word-example span {
             display: block;
-            color: #666;
+            color: #7a6360;
             font-style: italic;
-            margin-top: 4px;
+            margin-top: 5px;
         }
 
         .word-details summary {
             font-size: 14px;
-            color: var(--secondary-color);
+            color: #d4a373;
             cursor: pointer;
             font-weight: bold;
+            outline: none;
+        }
+
+        .word-details summary:hover {
+            color: #ffb5a7;
         }
 
         .details-content {
             margin-top: 10px;
             font-size: 13px;
-            border-top: 1px solid #eee;
+            border-top: 1px solid #fff0ed;
             padding-top: 10px;
+            background-color: #fffaf5;
+            border-radius: 8px;
+            padding: 10px;
         }
 
-        .detail-item { margin-bottom: 8px; }
-        .detail-item strong { color: #555; }
+        .detail-item { margin-bottom: 8px; line-height: 1.4; }
+        .detail-item strong { color: #82625a; }
 
         .lesson-badge {
             display: inline-block;
-            background: #e1f5fe;
-            color: #0288d1;
-            padding: 3px 10px;
+            background: #fff3e3;
+            color: #b57c4a;
+            padding: 4px 12px;
             border-radius: 15px;
             font-size: 12px;
-            margin-top: 12px;
+            margin-top: 14px;
+            font-weight: 500;
+            border: 1px solid #ffeacc;
         }
 
         .no-result {
             text-align: center;
             grid-column: 1 / -1;
             padding: 40px;
-            color: #888;
+            color: #b5928a;
             font-size: 18px;
         }
     </style>
@@ -277,52 +320,52 @@
 
 <div class="container">
     <header>
-        <h1><i class="fa-solid fa-graduation-cap"></i> Hệ Thống Quản Lý Từ Vựng THPT</h1>
-        <p>Phân loại khoa học Lớp 10 - 11 - 12 • Từ vựng SGK & Mở rộng cấp độ B1+</p>
+        <h1><i class="fa-solid fa-star"></i> Hệ Thống Quản Lý Từ Vựng THPT</h1>
+        <p>Phân loại khoa học Lớp 10 - 11 - 12 • Thúc đẩy năng lực từ vựng tiếng Anh</p>
     </header>
 
-    <!-- KHU VỰC DÀNH CHO GIÁO VIÊN: NÚT TẢI LÊN RIÊNG BIỆT -->
+    <!-- KHU VỰC DÀNH CHO GIÁO VIÊN -->
     <div class="admin-panel">
-        <h3><i class="fa-solid fa-folder-plus"></i> Khu Vực Cập Nhật Từ Vựng (Dành Cho Giáo Viên)</h3>
+        <h3><i class="fa-solid fa-heart"></i> Cập Nhật Từ Vựng (Dành Cho Giáo Viên)</h3>
         <div class="upload-grid">
             <!-- Khối 10 -->
             <div class="upload-zone">
-                <h4><i class="fa-solid fa-bookmark"></i> Tải lên Lớp 10</h4>
+                <h4><i class="fa-solid fa-feather"></i> Tải lên Lớp 10</h4>
                 <div class="btn-group">
                     <div class="upload-btn-wrapper">
                         <button class="btn-upload btn-sgk"><i class="fa-solid fa-book"></i> Từ SGK</button>
                         <input type="file" onchange="importVocab(this, '10', 'SGK')" accept=".json">
                     </div>
                     <div class="upload-btn-wrapper">
-                        <button class="btn-upload btn-morong"><i class="fa-solid fa-arrow-up-right-from-square"></i> Mở rộng</button>
+                        <button class="btn-upload btn-morong"><i class="fa-solid fa-sparkles"></i> Mở rộng</button>
                         <input type="file" onchange="importVocab(this, '10', 'Mở rộng')" accept=".json">
                     </div>
                 </div>
             </div>
             <!-- Khối 11 -->
             <div class="upload-zone">
-                <h4><i class="fa-solid fa-bookmark"></i> Tải lên Lớp 11</h4>
+                <h4><i class="fa-solid fa-feather"></i> Tải lên Lớp 11</h4>
                 <div class="btn-group">
                     <div class="upload-btn-wrapper">
                         <button class="btn-upload btn-sgk"><i class="fa-solid fa-book"></i> Từ SGK</button>
                         <input type="file" onchange="importVocab(this, '11', 'SGK')" accept=".json">
                     </div>
                     <div class="upload-btn-wrapper">
-                        <button class="btn-upload btn-morong"><i class="fa-solid fa-arrow-up-right-from-square"></i> Mở rộng</button>
+                        <button class="btn-upload btn-morong"><i class="fa-solid fa-sparkles"></i> Mở rộng</button>
                         <input type="file" onchange="importVocab(this, '11', 'Mở rộng')" accept=".json">
                     </div>
                 </div>
             </div>
             <!-- Khối 12 -->
             <div class="upload-zone">
-                <h4><i class="fa-solid fa-bookmark"></i> Tải lên Lớp 12</h4>
+                <h4><i class="fa-solid fa-feather"></i> Tải lên Lớp 12</h4>
                 <div class="btn-group">
                     <div class="upload-btn-wrapper">
                         <button class="btn-upload btn-sgk"><i class="fa-solid fa-book"></i> Từ SGK</button>
                         <input type="file" onchange="importVocab(this, '12', 'SGK')" accept=".json">
                     </div>
                     <div class="upload-btn-wrapper">
-                        <button class="btn-upload btn-morong"><i class="fa-solid fa-arrow-up-right-from-square"></i> Mở rộng</button>
+                        <button class="btn-upload btn-morong"><i class="fa-solid fa-sparkles"></i> Mở rộng</button>
                         <input type="file" onchange="importVocab(this, '12', 'Mở rộng')" accept=".json">
                     </div>
                 </div>
@@ -333,13 +376,13 @@
     <!-- THANH CÔNG CỤ TÌM KIẾM & BỘ LỌC CỦA HỌC SINH -->
     <div class="filter-panel">
         <div class="search-box">
-            <input type="text" id="searchInput" placeholder="Tìm kiếm từ vựng, ý nghĩa, ví dụ...">
-            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchInput" placeholder="Tìm từ vựng, ý nghĩa, ví dụ...">
+            <i class="fa-solid fa-heart"></i>
         </div>
 
         <div class="filter-select">
             <select id="gradeFilter">
-                <option value="all">Tất cả các lớp</option>
+                <option value="all">✨ Tất cả các lớp</option>
                 <option value="10">Lớp 10</option>
                 <option value="11">Lớp 11</option>
                 <option value="12">Lớp 12</option>
@@ -348,7 +391,7 @@
 
         <div class="filter-select">
             <select id="typeFilter">
-                <option value="all">Tất cả loại từ</option>
+                <option value="all">🌸 Tất cả loại từ</option>
                 <option value="SGK">Từ vựng SGK</option>
                 <option value="Mở rộng">Từ vựng mở rộng</option>
             </select>
@@ -356,7 +399,7 @@
 
         <div class="filter-select">
             <select id="lessonFilter">
-                <option value="all">Tất cả bài học</option>
+                <option value="all">📖 Tất cả bài học</option>
             </select>
         </div>
     </div>
@@ -366,7 +409,6 @@
 </div>
 
 <script>
-    // Dữ liệu bộ lõi hệ thống
     let vocabularyData = [];
 
     document.addEventListener("DOMContentLoaded", () => {
@@ -374,33 +416,31 @@
         if (localData) {
             vocabularyData = JSON.parse(localData);
         } else {
-            // Nạp sẵn vài từ mẫu ban đầu để giao diện không bị trống
+            // Từ vựng mẫu hiển thị ban đầu
             vocabularyData = [
                 {
-                    "word": "Commute", "level": "B1", "ipa": "/kəˈmjuːt/", "grade": "12", "type": "SGK", "lesson": "Unit 1",
-                    "meaning": "Đi làm hằng ngày bằng phương tiện công cộng công sở.",
+                    "word": "Commute", "level": "B1", "ipa": "/kəˈmjuːt/", "grade": "12", "type": "SGK", "lesson": "GS - Unit 1",
+                    "meaning": "Đi làm hằng ngày (bằng xe buýt, tàu điện, ô tô giữa nhà và nơi làm việc).",
                     "example_en": "He commutes to work by train every day.", "example_vi": "Anh ấy đi làm bằng tàu hỏa mỗi ngày.",
-                    "collocations": "daily commute", "word_family": "commuter (n)", "synonyms": "travel", "antonyms": ""
+                    "collocations": "daily commute", "word_family": "commuter (n) -> The train was full of commuters.", "synonyms": "travel", "antonyms": ""
                 }
             ];
         }
         renderVocab(vocabularyData);
         updateLessonFilter();
 
-        // Đăng ký sự kiện lọc tìm kiếm trực tiếp
         document.getElementById('searchInput').addEventListener('input', filterData);
         document.getElementById('gradeFilter').addEventListener('change', filterData);
         document.getElementById('typeFilter').addEventListener('change', filterData);
         document.getElementById('lessonFilter').addEventListener('change', filterData);
     });
 
-    // Hàm hiển thị danh sách thẻ từ vựng
     function renderVocab(data) {
         const grid = document.getElementById('vocabGrid');
         grid.innerHTML = '';
 
         if(data.length === 0) {
-            grid.innerHTML = `<div class="no-result"><i class="fa-regular fa-face-frown"></i> Không tìm thấy từ vựng nào khớp bộ lọc.</div>`;
+            grid.innerHTML = `<div class="no-result"><i class="fa-regular fa-face-frown"></i> Không tìm thấy từ vựng nào khớp bộ lọc rồi nha...</div>`;
             return;
         }
 
@@ -408,14 +448,13 @@
             const card = document.createElement('div');
             card.className = 'vocab-card';
             
-            // Định dạng kiểu thẻ theo loại từ
             const typeTagClass = item.type === 'SGK' ? 'tag-sgk' : 'tag-morong';
 
             card.innerHTML = `
                 <div class="card-tags">
                     <span class="tag tag-grade">Lớp ${item.grade}</span>
                     <span class="tag ${typeTagClass}">${item.type}</span>
-                    <span class="tag tag-level">${item.level || 'B1+'}</span>
+                    <span class="tag tag-level">${item.level || 'B1'}</span>
                 </div>
                 <h3 class="word-title">${item.word}</h3>
                 <div class="word-ipa">${item.ipa || ''}</div>
@@ -425,7 +464,7 @@
                     <span>${item.example_vi || ''}</span>
                 </div>
                 <details class="word-details">
-                    <summary>Xem mở rộng (Word Map)</summary>
+                    <summary>Xem mở rộng (Word Map) ✨</summary>
                     <div class="details-content">
                         ${item.collocations ? `<div class="detail-item"><strong>Collocations:</strong> ${item.collocations}</div>` : ''}
                         ${item.word_family ? `<div class="detail-item"><strong>Word Family:</strong> ${item.word_family}</div>` : ''}
@@ -433,17 +472,16 @@
                         ${item.antonyms ? `<div class="detail-item"><strong>Antonyms:</strong> ${item.antonyms}</div>` : ''}
                     </div>
                 </details>
-                <div><span class="lesson-badge"><i class="fa-solid fa-bookmark"></i> ${item.lesson || 'General'}</span></div>
+                <div><span class="lesson-badge"><i class="fa-solid fa-heart"></i> ${item.lesson || 'General'}</span></div>
             `;
             grid.appendChild(card);
         });
     }
 
-    // Tự động phân tích danh sách bài học dựa trên dữ liệu đang có
     function updateLessonFilter() {
         const filter = document.getElementById('lessonFilter');
-        const lessons = [...new Set(vocabularyData.map(item => item.lesson || 'General'))];
-        filter.innerHTML = '<option value="all">Tất cả bài học</option>';
+        const lessons = [...new Set(vocabularyData.map(item => item.lesson || 'General'))].sort();
+        filter.innerHTML = '<option value="all">📖 Tất cả bài học</option>';
         lessons.forEach(lesson => {
             const option = document.createElement('option');
             option.value = lesson; option.textContent = lesson;
@@ -451,18 +489,17 @@
         });
     }
 
-    // Bộ lọc logic đa chức năng
     function filterData() {
         const keyword = document.getElementById('searchInput').value.toLowerCase().trim();
         const selectedGrade = document.getElementById('gradeFilter').value;
         const selectedType = document.getElementById('typeFilter').value;
-        const selectedLesson = document.getElementById('lessonFilter').value;
+        const documentLesson = document.getElementById('lessonFilter').value;
 
         const filtered = vocabularyData.filter(item => {
             const matchKeyword = item.word.toLowerCase().includes(keyword) || item.meaning.toLowerCase().includes(keyword);
             const matchGrade = (selectedGrade === 'all') || (item.grade === selectedGrade);
             const matchType = (selectedType === 'all') || (item.type === selectedType);
-            const matchLesson = (selectedLesson === 'all') || (item.lesson === selectedLesson);
+            const matchLesson = (documentLesson === 'all') || (item.lesson === documentLesson);
 
             return matchKeyword && matchGrade && matchType && matchLesson;
         });
@@ -470,7 +507,6 @@
         renderVocab(filtered);
     }
 
-    // HÀM TỰ ĐỘNG IMPORT PHÂN LOẠI THEO TỪNG NÚT BẤM CỦA GIÁO VIÊN
     function importVocab(inputElement, grade, type) {
         const file = inputElement.files[0];
         if (!file) return;
@@ -481,11 +517,9 @@
                 const newData = JSON.parse(e.target.result);
                 if (Array.isArray(newData)) {
                     newData.forEach(item => {
-                        // Gắn thẻ tự động thuộc tính lớp và loại từ dựa theo nút bấm
                         item.grade = grade;
                         item.type = type;
 
-                        // Đồng bộ hóa đè nếu trùng lặp từ vựng
                         const index = vocabularyData.findIndex(v => v.word.toLowerCase() === item.word.toLowerCase() && v.grade === grade);
                         if (index !== -1) {
                             vocabularyData[index] = item;
@@ -497,16 +531,16 @@
                     localStorage.setItem('thptVocabulary', JSON.stringify(vocabularyData));
                     renderVocab(vocabularyData);
                     updateLessonFilter();
-                    alert(`Đã tải thành công bộ từ vựng [Lớp ${grade} - Hoạt động: ${type}]. Hệ thống đã cập nhật tổng số từ!`);
+                    alert(`Tải lên thành công rồi nhé! Đã cập nhật kho từ vựng [Lớp ${grade} - ${type}].`);
                 } else {
-                    alert("Cấu trúc file JSON chưa chính xác, phải là một danh sách dữ liệu.");
+                    alert("File JSON phải là một mảng danh sách từ vựng nha thầy/cô.");
                 }
             } catch (err) {
-                alert("Không thể đọc được file, vui lòng kiểm tra lại cấu trúc file định dạng JSON.");
+                alert("Lỗi file rồi, vui lòng kiểm tra lại file JSON nha.");
             }
         };
         reader.readAsText(file);
-        inputElement.value = ''; // Reset input để có thể tải lại cùng một file nếu sửa đổi
+        inputElement.value = '';
     }
 </script>
 </body>
