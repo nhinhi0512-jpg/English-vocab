@@ -266,33 +266,163 @@
 <script>
     // 1. DỮ LIỆU MẪU BAN ĐẦU (Định dạng chuẩn để bạn chuẩn bị file upload)
     let vocabularyData = [
-        {
-            "word": "Attain",
-            "level": "B2",
-            "ipa": "/eɪˈteɪn/",
-            "lesson": "Unit 1",
-            "meaning": "Đạt được, giành được (sau một quá trình nỗ lực)",
-            "example_en": "She worked hard to attain her goal.",
-            "example_vi": "Cô ấy đã làm việc chăm chỉ để đạt được mục tiêu của mình.",
-            "collocations": "attain a goal, attain a rank",
-            "word_family": "attainment (n), attainable (adj)",
-            "synonyms": "achieve, accomplish, reach",
-            "antonyms": "fail (thất bại), lose (đánh mất)"
-        },
-        {
-            "word": "Tenacity",
-            "level": "C1",
-            "ipa": "/təˈnæsəti/",
-            "lesson": "Unit 1",
-            "meaning": "Sự kiên trì, bền bỉ, kiên định",
-            "example_en": "You need great tenacity to achieve success.",
-            "example_vi": "Bạn cần sự kiên trì lớn để đạt được thành công.",
-            "collocations": "show tenacity, remarkable tenacity",
-            "word_family": "tenacious (adj), tenaciously (adv)",
-            "synonyms": "persistence, determination, perseverance",
-            "antonyms": "irresolution (sự do dự), weakness (sự yếu đuối)"
-        }
-    ];
+  {
+    "word": "Commute",
+    "level": "B1",
+    "ipa": "/kəˈmjuːt/",
+    "lesson": "Unit 1",
+    "meaning": "Đi làm hằng ngày (bằng xe buýt, tàu điện, ô tô giữa nhà và nơi làm việc).",
+    "example_en": "He commutes to work by train every day.",
+    "example_vi": "Anh ấy đi làm bằng tàu hỏa mỗi ngày.",
+    "collocations": "a long commute, daily commute",
+    "word_family": "commute (n), commuter (n)",
+    "synonyms": "travel, journey",
+    "antonyms": "stay at home (ở nhà), work remotely (làm việc từ xa)"
+  },
+  {
+    "word": "Attain",
+    "level": "B2",
+    "ipa": "/əˈteɪn/",
+    "lesson": "Unit 1",
+    "meaning": "Đạt được, giành được (sau một quá trình nỗ lực).",
+    "example_en": "She worked hard to attain her goal.",
+    "example_vi": "Cô ấy đã làm việc chăm chỉ để đạt được mục tiêu của mình.",
+    "collocations": "attain a goal, attain a rank, difficult to attain",
+    "word_family": "attainment (n), attainable (adj), unattainable (adj)",
+    "synonyms": "achieve, accomplish, reach, obtain",
+    "antonyms": "fail (Thất bại - Dùng khi không đạt được kết quả mong muốn hoặc trượt một kỳ thi), lose (Đánh mất - Dùng khi mất đi thứ gì đó đang sở hữu hoặc thua một trận đấu)"
+  },
+  {
+    "word": "Horizon",
+    "level": "B2",
+    "ipa": "/həˈraɪzn/",
+    "lesson": "Unit 1",
+    "meaning": "Đường chân trời, tầm chân trời; (nghĩa bóng) tầm hiểu biết/tầm nhìn.",
+    "example_en": "The sun sank below the horizon.",
+    "example_vi": "Mặt trời lặn xuống dưới đường chân trời.",
+    "collocations": "broaden/expand one's horizons, on the horizon",
+    "word_family": "horizontal (adj), horizontally (adv)",
+    "synonyms": "skyline, vista, outlook",
+    "antonyms": ""
+  },
+  {
+    "word": "Heritage",
+    "level": "B2",
+    "ipa": "/ˈherɪtɪdʒ/",
+    "lesson": "Unit 1",
+    "meaning": "Di sản (văn hóa, truyền thống, thiên nhiên).",
+    "example_en": "We must protect our cultural heritage.",
+    "example_vi": "Chúng ta phải bảo vệ di sản văn hóa của mình.",
+    "collocations": "cultural heritage, national heritage, rich heritage",
+    "word_family": "inherit (v), inheritance (n)",
+    "synonyms": "legacy, inheritance, tradition",
+    "antonyms": ""
+  },
+  {
+    "word": "Tolerance",
+    "level": "B2",
+    "ipa": "/ˈtɒlərəns/",
+    "lesson": "Unit 1",
+    "meaning": "Sự bao dung, lòng vị tha, sự khoan dung.",
+    "example_en": "The school promotes tolerance among students.",
+    "example_vi": "Nhà trường thúc đẩy sự khoan dung giữa các học sinh.",
+    "collocations": "zero tolerance, religious tolerance",
+    "word_family": "tolerate (v), tolerant (adj), intolerable (adj)",
+    "synonyms": "acceptance, open-mindedness, patience",
+    "antonyms": "intolerance (Sự cố chấp, không khoan dung - Dùng khi một người từ chối chấp nhận các quan điểm hoặc hành vi khác biệt với mình), prejudice (Định kiến - Ý kiến tiêu cực được hình thành từ trước mà không có lý do hoặc trải nghiệm thực tế)"
+  },
+  {
+    "word": "Literally",
+    "level": "B2",
+    "ipa": "/ˈlɪtərəli/",
+    "lesson": "Unit 1",
+    "meaning": "Theo nghĩa đen, thật sự là.",
+    "example_en": "The word 'biography' literally means 'life writing'.",
+    "example_vi": "Từ 'biography' theo nghĩa đen có nghĩa là 'viết về cuộc đời'.",
+    "collocations": "take something literally, literally millions",
+    "word_family": "literal (adj), literacy (n)",
+    "synonyms": "exactly, precisely, actually, truly",
+    "antonyms": "figuratively (Theo nghĩa bóng - Dùng khi diễn đạt một ẩn dụ, hình ảnh so sánh chứ không phải sự thật trần trụi), virtually (Hầu như, gần như - Dùng để diễn tả một việc gần như là hoàn toàn đúng nhưng không phải chính xác 100%)"
+  },
+  {
+    "word": "Cosmopolitan",
+    "level": "C1",
+    "ipa": "/ˌkɒzməˈpɒlɪtən/",
+    "lesson": "Unit 1",
+    "meaning": "Có tính quốc tế, đa văn hóa (gồm người từ nhiều nơi trên thế giới).",
+    "example_en": "New York is a very cosmopolitan city.",
+    "example_vi": "New York là một thành phố mang tính quốc tế.",
+    "collocations": "cosmopolitan atmosphere, cosmopolitan outlook",
+    "word_family": "cosmopolitan (n), cosmopolitanism (n)",
+    "synonyms": "international, multicultural, global",
+    "antonyms": "provincial (Mang tính tỉnh lẻ, hẹp hòi - Dùng để miêu tả những nơi hoặc quan điểm hạn hẹp, thiếu tính mở rộng với thế giới), local (Mang tính địa phương - Chỉ giới hạn trong một vùng, một xã hội nhỏ hẹp nhất định)"
+  },
+  {
+    "word": "Tenacity",
+    "level": "C1",
+    "ipa": "/təˈnæsəti/",
+    "lesson": "Unit 1",
+    "meaning": "Sự kiên trì, bền bỉ, kiên định.",
+    "example_en": "You need great tenacity to achieve success.",
+    "example_vi": "Bạn cần sự kiên trì lớn để đạt được thành công.",
+    "collocations": "show tenacity, remarkable tenacity",
+    "word_family": "tenacious (adj), tenaciously (adv)",
+    "synonyms": "persistence, determination, perseverance",
+    "antonyms": "irresolution (Sự do dự, thiếu quyết đoán - Chỉ trạng thái không thể đưa ra quyết định vững vàng), weakness (Sự yếu đoá - Thiếu sức mạnh tinh thần hoặc thể chất để duy trì hành động)"
+  },
+  {
+    "word": "Ironic",
+    "level": "C1",
+    "ipa": "/aɪˈrɒnɪk/",
+    "lesson": "Unit 1",
+    "meaning": "Mỉa mai, trớ trêu (ngược lại với điều kỳ vọng).",
+    "example_en": "It is ironic that the lifeguard cannot swim.",
+    "example_vi": "Thật trớ trêu là nhân viên cứu hộ lại không biết bơi.",
+    "collocations": "ironic twist, ironic smile",
+    "word_family": "irony (n), ironically (adv)",
+    "synonyms": "sarcastic, paradoxical, mocking",
+    "antonyms": "sincere (Chân thành, thật tâm - Diễn tả lời nói, hành động xuất phát từ lòng thật thà, không có ẩn ý hay mỉa mai), predictable (Có thể đoán trước được - Mọi chuyện diễn ra đúng như dự tính, không có yếu tố bất ngờ hay ngược đời)"
+  },
+  {
+    "word": "Adversely",
+    "level": "C1",
+    "ipa": "/ˈædvɜːsli/",
+    "lesson": "Unit 1",
+    "meaning": "Một cách bất lợi, tiêu cực, có hại.",
+    "example_en": "The bad weather adversely affected the crop.",
+    "example_vi": "Thời tiết xấu đã ảnh hưởng tiêu cực đến vụ mùa.",
+    "collocations": "adversely affect, adversely influence",
+    "word_family": "adverse (adj), adversity (n)",
+    "synonyms": "negatively, unfavorably, poorly",
+    "antonyms": "favorably (Một cách thuận lợi, tốt đẹp - Dùng khi kết quả mang lại sự tích cực, có lợi cho chủ thể), beneficially (Một cách có ích - Mang lại lợi ích, giúp cải thiện tình hình tốt lên)"
+  },
+  {
+    "word": "Conservationist",
+    "level": "C1",
+    "ipa": "/ˌkɒnsəˈveɪʃənɪst/",
+    "lesson": "Unit 1",
+    "meaning": "Nhà bảo tồn thiên nhiên, người bảo vệ môi trường.",
+    "example_en": "The conservationist is working to save the forest.",
+    "example_vi": "Nhà bảo tồn đang làm việc để cứu khu rừng.",
+    "collocations": "wildlife conservationist, nature conservationist",
+    "word_family": "conserve (v), conservation (n)",
+    "synonyms": "environmentalist, preservationist",
+    "antonyms": "destroyer (Kẻ phá hoại - Người hoặc thứ làm tổn hại, phá hủy cấu trúc tự nhiên), polluter (Kẻ gây ô nhiễm - Người hoặc doanh nghiệp xả chất thải gây hại ra môi trường)"
+  },
+  {
+    "word": "Surreal",
+    "level": "C2",
+    "ipa": "/sə·ˈri·əl/",
+    "lesson": "Unit 1",
+    "meaning": "Kỳ ảo, siêu thực, như một giấc mơ (rất kỳ lạ).",
+    "example_en": "Driving through the empty city felt surreal.",
+    "example_vi": "Lái xe xuyên qua thành phố vắng người cảm giác thật kỳ ảo.",
+    "collocations": "surreal experience, surreal quality",
+    "word_family": "surrealism (n), surrealist (n)",
+    "synonyms": "dreamlike, bizarre, weird, fantastic",
+    "antonyms": "real (Thực tế, có thật - Thứ hiện hữu rõ ràng trong đời thực), ordinary (Bình thường, tầm thường - Diễn tả sự vật, hiện tượng quen thuộc diễn ra hằng ngày, không có gì kỳ lạ)"
+  }
+];
 
     // Khởi tạo ứng dụng khi trang web tải xong
     document.addEventListener("DOMContentLoaded", () => {
