@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Từ Vựng THPT & TOEIC</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #b58255; 
+            --secondary-color: #e8988a; 
+            --sgk-color: #e5b0a3; 
+            --morong-color: #e0aa7d; 
+            --toeic-color: #c78585; 
+            --bg-color: #f2ebd9; 
+            --card-bg: #fdfbf7; 
+            --text-color: #382c2a; 
+            --border-radius: 16px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #dfb2a7 0%, #dca67a 100%);
+            padding: 30px 20px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 15px rgba(181, 130, 85, 0.15);
+        }
+
+        header h1 { color: #3e2824; margin: 0 0 8px 0; font-size: 32px; font-weight: 800; }
+        header p { color: #4e3531; margin: 0; font-size: 16px; font-style: italic; font-weight: 600; letter-spacing: 0.5px; }
+
+        /* KHU VỰC QUẢN TRỊ */
+        .auth-panel {
+            background: #eae1cd;
+            border: 1px solid #dcd0b5;
+            padding: 15px 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 25px;
+            display: none; 
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+            color: #4e3531;
+            font-weight: 500;
+        }
+
+        .auth-form { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .auth-form input {
+            padding: 10px 12px;
+            border: 2px solid #dfb2a7;
+            border-radius: 8px;
+            background-color: #fffdfa;
+            color: var(--text-color);
+            outline: none;
+            font-weight: 500;
+        }
+        .auth-form input::placeholder { color: #8e7d7a; }
+        .auth-form input:focus { border-color: var(--secondary-color); }
+
+        .forgot-password-link {
+            font-size: 13px;
+            color: #915a2b;
+            text-decoration: underline;
+            cursor: pointer;
+            margin-left: 5px;
+            font-weight: bold;
+        }
+        .forgot-password-link:hover { color: #b58255; }
+
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .btn-primary { background-color: #e8988a; color: #3e2824; }
+        .btn-secondary { background-color: #b58255; color: white; }
+        .btn-danger { background-color: #c78585; color: white; }
+        .btn-warning { background-color: #d4a373; color: #3e2824; }
+        .btn:hover { opacity: 0.9; }
+
+        .admin-panel {
+            background: #e6dcbe;
+            border: 2px dashed #caa785;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+            display: none; 
+        }
+
+        .admin-panel h3 { margin-top: 0; color: #4e3531; display: flex; align-items: center; gap: 10px; }
+        .upload-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 15px; }
+        .upload-zone {
+            background: #fdfbf7; padding: 15px; border-radius: 12px; border: 1px solid #dcd0b5;
+            display: flex; flex-direction: column; justify-content: space-between;
+            position: relative;
+        }
+        .upload-zone h4 { margin: 0 0 10px 0; color: #3e2824; border-bottom: 2px solid #eae1cd; padding-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
+        .delete-category-btn {
+            background: none;
+            border: none;
+            color: #c78585;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 20px;
+            transition: all 0.2s;
+        }
+        .delete-category-btn:hover {
+            background-color: #c78585;
+            color: white;
+            transform: scale(1.05);
+        }
+        .btn-group { display: flex; gap: 10px; margin-top: 5px; }
+        .upload-btn-wrapper { position: relative; overflow: hidden; flex: 1; }
+        
+        .btn-upload {
+            width: 100%; padding: 10px 5px; border-radius: 8px; font-size: 13px; font-weight: bold;
+            cursor: pointer; text-align: center; border: 2px solid; background: #fffdfa; transition: all 0.2s;
+        }
+        .btn-sgk { border-color: #e8988a; color: #aa5242; background-color: #f7eae6; }
+        .btn-sgk:hover { background: #e8988a; color: #3e2824; }
+        .btn-morong { border-color: #e0aa7d; color: #915a2b; background-color: #f6efe6; }
+        .btn-morong:hover { background: #e0aa7d; color: white; }
+        .btn-toeic { border-color: #c78585; color: #6e2e2e; background-color: #f4e6e6; padding: 10px 0; }
+        .btn-toeic:hover { background: #c78585; color: white; }
+        .upload-btn-wrapper input[type=file] { position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; height: 100%; width: 100%; }
+
+        /* GIAO DIỆN FORM CHỈNH SỬA TỪ VỰNG TRỰC TIẾP */
+        .edit-box {
+            background: #fdfbf7;
+            border: 2px solid #b58255;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            display: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        .edit-box h4 { margin: 0 0 15px 0; color: #5a3e39; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+        .edit-form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 15px; }
+        .edit-field { display: flex; flex-direction: column; gap: 5px; }
+        .edit-field label { font-size: 13px; font-weight: bold; color: #5c4c49; }
+        .edit-field input, .edit-field select { padding: 10px; border: 1px solid #caa785; border-radius: 6px; background: #fffdfa; color: var(--text-color); outline: none; font-size: 14px; }
+        .edit-field input:focus { border-color: var(--primary-color); }
+        .edit-full-width { grid-column: 1 / -1; }
+        .edit-action-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 5px; }
+
+        /* Bộ lọc và Card từ vựng */
+        .filter-panel { background: #eae1cd; padding: 20px; border-radius: var(--border-radius); box-shadow: 0 4px 10px rgba(0,0,0,0.02); display: flex; flex-wrap: wrap; gap: 15px; align-items: center; margin-bottom: 25px; border: 1px solid #dcd0b5; }
+        .search-box { flex: 2; min-width: 280px; position: relative; }
+        .search-box input { width: 100%; padding: 12px 40px 12px 15px; border: 2px solid #caa785; border-radius: 10px; font-size: 16px; box-sizing: border-box; outline: none; background-color: #fdfbf7; color: var(--text-color); font-weight: 500; }
+        .search-box input:focus { border-color: #b58255; box-shadow: 0 0 8px rgba(181, 130, 85, 0.2); }
+        .search-box i { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #b58255; }
+        .filter-select { flex: 1; min-width: 150px; }
+        .filter-select select { width: 100%; padding: 12px 15px; border: 2px solid #caa785; border-radius: 10px; font-size: 16px; background-color: #fdfbf7; cursor: pointer; color: #3e2824; font-weight: 500; outline: none; }
+        .filter-select select:focus { border-color: #b58255; }
+        
+        .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
+        .vocab-card { background: var(--card-bg); border-radius: var(--border-radius); padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); position: relative; transition: all 0.2s; border: 1px solid #e6dcbe; }
+        .vocab-card:hover { transform: translateY(-5px); box-shadow: 0 6px 18px rgba(181, 130, 85, 0.15); }
+        .card-tags { display: flex; align-items: center; gap: 5px; margin-bottom: 10px; flex-wrap: wrap; }
+        .tag { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; }
+        .tag-grade { background-color: #dcd0b5; color: #3e2824; }
+        .tag-sgk { background-color: var(--sgk-color); color: #5a2014; }
+        .tag-morong { background-color: var(--morong-color); color: #553110; }
+        .tag-toeic { background-color: var(--toeic-color); color: #fff; }
+        .tag-level { background-color: #caa785; color: #3e2824; }
+
+        /* Nút quản trị trên từng Card */
+        .admin-card-actions { margin-left: auto; display: flex; gap: 8px; }
+        .btn-edit-item { background: none; border: none; color: #b58255; cursor: pointer; font-size: 14px; transition: color 0.2s; display: none; }
+        .btn-edit-item:hover { color: #915a2b; }
+        .btn-delete-item { background: none; border: none; color: #aa5242; cursor: pointer; font-size: 14px; transition: color 0.2s; display: none; }
+        .btn-delete-item:hover { color: #6e2e2e; }
+
+        .word-title { font-size: 25px; font-weight: bold; color: #3e2824; margin: 10px 0 5px 0; }
+        .word-ipa { color: #6e5e5b; font-style: italic; margin-bottom: 12px; font-size: 15px; font-weight: 500; }
+        .word-meaning { font-size: 17px; font-weight: 700; color: #241411; margin-bottom: 12px; border-left: 4px solid #e8988a; padding-left: 10px; }
+        .word-example { background: #f5eedc; padding: 12px; border-radius: 10px; font-size: 14px; margin-bottom: 15px; border: 1px dashed #caa785; font-weight: 500; }
+        .word-example strong { color: #3e2824; }
+        .word-example span { display: block; color: #5c4c49; font-style: italic; margin-top: 5px; font-weight: normal; }
+        
+        .word-details summary { font-size: 14px; color: #915a2b; cursor: pointer; font-weight: bold; outline: none; }
+        .word-details summary:hover { color: #b58255; }
+        .details-content { margin-top: 10px; font-size: 13px; border-top: 1px solid #eae1cd; background-color: #f5eedc; border-radius: 8px; padding: 10px; }
+        .detail-item { margin-bottom: 8px; line-height: 1.4; color: var(--text-color); }
+        .detail-item strong { color: #5a3e39; }
+        .lesson-badge { display: inline-block; background: #eae1cd; color: #6a492d; padding: 4px 12px; border-radius: 15px; font-size: 12px; margin-top: 14px; font-weight: 600; border: 1px solid #caa785; }
+        .no-result { text-align: center; grid-column: 1 / -1; padding: 40px; color: #6e5e5b; font-size: 18px; font-weight: 500; }
+
+        /* CUSTOM POPUP */
+        .custom-modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(56, 44, 42, 0.4); backdrop-filter: blur(4px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.25s ease;
+        }
+        .custom-modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .custom-modal-box {
+            background: #fdfbf7; border-radius: 24px; padding: 25px 30px;
+            max-width: 420px; width: 90%; text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            border: 1px solid #e6dcbe; transform: scale(0.85); transition: transform 0.25s ease;
+        }
+        .custom-modal-overlay.active .custom-modal-box { transform: scale(1); }
+        .custom-modal-text {
+            font-size: 16px; color: #382c2a; line-height: 1.6;
+            margin-bottom: 20px; font-weight: 500; text-align: center;
+        }
+        .custom-modal-btn {
+            background-color: #e8988a; color: #3e2824; font-size: 15px;
+            padding: 12px 40px; border: none; border-radius: 50px;
+            font-weight: bold; cursor: pointer; width: 100%; box-sizing: border-box;
+            transition: background-color 0.2s;
+        }
+        .custom-modal-btn:hover { background-color: #dfb2a7; }
+        
+        .modal-confirm-group { display: flex; gap: 10px; }
+        .btn-confirm-yes { background-color: #c78585; color: white; }
+        .btn-confirm-yes:hover { background-color: #aa5242; }
+        .btn-confirm-no { background-color: #caa785; color: #3e2824; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1><i class="fa-solid fa-graduation-cap"></i> Hệ Thống Từ Vựng THPT & TOEIC</h1>
+        <p><i class="fa-solid fa-quote-left"></i> Học từ vựng mỗi ngày - Mở cánh cửa tương lai <i class="fa-solid fa-quote-right"></i></p>
+    </header>
+
+    <div class="auth-panel" id="authPanel">
+        <div id="authStatus"><i class="fa-solid fa-circle-user"></i> Chưa đăng nhập quyền quản trị viên</div>
+        
+        <div class="auth-form" id="loginForm">
+            <input type="email" id="authEmail" placeholder="Email giáo viên...">
+            <input type="password" id="authPassword" placeholder="Mật khẩu...">
+            <button onclick="handleLogin()" class="btn btn-primary">Đăng nhập</button>
+            <span onclick="handleForgotPassword()" class="forgot-password-link">Quên mật khẩu?</span>
+        </div>
+
+        <div id="userInfoPanel" style="display: none;">
+            <span id="userEmailLabel" style="font-weight: bold; margin-right: 15px; color: #3e2824;"></span>
+            <button onclick="handleLogout()" class="btn btn-secondary">Đăng xuất</button>
+        </div>
+    </div>
+
+    <div class="admin-panel" id="adminPanel">
+        <h3><i class="fa-solid fa-heart"></i> Cập Nhật Từ Vựng Trực Tuyến</h3>
+        <div class="upload-grid" id="uploadGrid">
+            <!-- Các mục tải lên sẽ được tạo động bằng JavaScript để có thể xóa -->
+        </div>
+
+        <div class="edit-box" id="editBox">
+            <h4><i class="fa-solid fa-pen-to-square"></i> Khung Chỉnh Sửa Từ Vựng Trực Tiếp</h4>
+            <input type="hidden" id="editOriginalKey">
+            <div class="edit-form-grid">
+                <div class="edit-field">
+                    <label>Từ vựng (Word)</label>
+                    <input type="text" id="editWord" disabled>
+                </div>
+                <div class="edit-field">
+                    <label>Phiên âm (IPA)</label>
+                    <input type="text" id="editIpa">
+                </div>
+                <div class="edit-field">
+                    <label>Khóa học (Grade)</label>
+                    <select id="editGrade">
+                        <option value="9">Lớp 9</option>
+                        <option value="10">Lớp 10</option>
+                        <option value="11">Lớp 11</option>
+                        <option value="12">Lớp 12</option>
+                        <option value="TOEIC">LUYỆN THI TOEIC</option>
+                    </select>
+                </div>
+                <div class="edit-field">
+                    <label>Loại phân mục (Type)</label>
+                    <select id="editType">
+                        <option value="SGK">Từ vựng SGK</option>
+                        <option value="Mở rộng">Từ vựng mở rộng</option>
+                        <option value="TOEIC">Từ vựng TOEIC</option>
+                    </select>
+                </div>
+                <div class="edit-field">
+                    <label>Trình độ (Level)</label>
+                    <input type="text" id="editLevel">
+                </div>
+                <div class="edit-field">
+                    <label>Bài học (Lesson)</label>
+                    <input type="text" id="editLesson">
+                </div>
+                <div class="edit-field edit-full-width">
+                    <label>Ý nghĩa (Meaning)</label>
+                    <input type="text" id="editMeaning">
+                </div>
+                <div class="edit-field edit-full-width">
+                    <label>Ví dụ tiếng Anh (Example En)</label>
+                    <input type="text" id="editExampleEn">
+                </div>
+                <div class="edit-field edit-full-width">
+                    <label>Ví dụ tiếng Việt (Example Vi)</label>
+                    <input type="text" id="editExampleVi">
+                </div>
+                <div class="edit-field edit-full-width">
+                    <label>Cụm từ hay đi kèm (Collocations)</label>
+                    <input type="text" id="editCollocations">
+                </div>
+                <div class="edit-field edit-full-width">
+                    <label>Gia đình từ (Word Family)</label>
+                    <input type="text" id="editWordFamily">
+                </div>
+                <div class="edit-field">
+                    <label>Từ đồng nghĩa (Synonyms)</label>
+                    <input type="text" id="editSynonyms">
+                </div>
+                <div class="edit-field">
+                    <label>Từ trái nghĩa (Antonyms)</label>
+                    <input type="text" id="editAntonyms">
+                </div>
+            </div>
+            <div class="edit-action-btns">
+                <button onclick="closeEditBox()" class="btn btn-secondary">Hủy bỏ</button>
+                <button onclick="saveWordUpdate()" class="btn btn-primary">Cập nhật thay đổi</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="filter-panel">
+        <div class="search-box"><input type="text" id="searchInput" placeholder="Tìm từ vựng, ý nghĩa..."><i class="fa-solid fa-heart"></i></div>
+        <div class="filter-select">
+            <select id="gradeFilter">
+                <option value="all">✨ Tất cả các khóa</option>
+                <option value="9">Lớp 9</option>
+                <option value="10">Lớp 10</option>
+                <option value="11">Lớp 11</option>
+                <option value="12">Lớp 12</option>
+                <option value="TOEIC">🎯 LUYỆN THI TOEIC</option>
+            </select>
+        </div>
+        <div class="filter-select">
+            <select id="typeFilter">
+                <option value="all">🌸 Tất cả loại từ</option>
+                <option value="SGK">Từ vựng SGK</option>
+                <option value="Mở rộng">Từ vựng mở rộng</option>
+                <option value="TOEIC">Từ vựng TOEIC</option>
+            </select>
+        </div>
+        <div class="filter-select"><select id="lessonFilter"><option value="all">📖 Tất cả bài học</option></select></div>
+    </div>
+
+    <div class="vocab-grid" id="vocabGrid"></div>
+</div>
+
+<div class="custom-modal-overlay" id="customModal">
+    <div class="custom-modal-box">
+        <div class="custom-modal-text" id="customModalText">Nội dung thông báo</div>
+        <div id="modalActionArea">
+            <button class="custom-modal-btn" onclick="closeModal()">OK</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAGr5zM79FPI5X8cL0ePNSoHU8o8rhfvOI",
+        authDomain: "hethong-tuvung.firebaseapp.com",
+        databaseURL: "https://hethong-tuvung-default-rtdb.firebaseio.com",
+        projectId: "hethong-tuvung",
+        storageBucket: "hethong-tuvung.firebasestorage.app",
+        messagingSenderId: "526320623944",
+        appId: "1:526320623944:web:7cb66721f3d1eee520937d",
+        measurementId: "G-XDFT3DG72R"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const database = firebase.database();
+
+    let vocabularyData = [];
+    let currentUser = null;
+    let isAdminMode = false;
+
+    const TEACHER_UID = "btVDHtA2iShOFZp2YKeDDEZN0VI3"; 
+
+    // Cấu hình các mục tải lên
+    const UPLOAD_CATEGORIES = [
+        { grade: '9', type: 'SGK', label: 'Tải lên Lớp 9', subLabel: 'Từ SGK', btnClass: 'btn-sgk' },
+        { grade: '9', type: 'Mở rộng', label: 'Tải lên Lớp 9', subLabel: 'Mở rộng', btnClass: 'btn-morong' },
+        { grade: '10', type: 'SGK', label: 'Tải lên Lớp 10', subLabel: 'Từ SGK', btnClass: 'btn-sgk' },
+        { grade: '10', type: 'Mở rộng', label: 'Tải lên Lớp 10', subLabel: 'Mở rộng', btnClass: 'btn-morong' },
+        { grade: '11', type: 'SGK', label: 'Tải lên Lớp 11', subLabel: 'Từ SGK', btnClass: 'btn-sgk' },
+        { grade: '11', type: 'Mở rộng', label: 'Tải lên Lớp 11', subLabel: 'Mở rộng', btnClass: 'btn-morong' },
+        { grade: '12', type: 'SGK', label: 'Tải lên Lớp 12', subLabel: 'Từ SGK', btnClass: 'btn-sgk' },
+        { grade: '12', type: 'Mở rộng', label: 'Tải lên Lớp 12', subLabel: 'Mở rộng', btnClass: 'btn-morong' },
+        { grade: 'TOEIC', type: 'TOEIC', label: 'LUYỆN THI TOEIC', subLabel: 'Tải lên từ vựng TOEIC', btnClass: 'btn-toeic' }
+    ];
+
+    // Hàm tạo giao diện quản lý upload kèm nút xóa toàn bộ danh mục
+    function renderUploadPanel() {
+        const grid = document.getElementById('uploadGrid');
+        if (!grid) return;
+        
+        // Nhóm các mục theo label để gộp chung nút xóa
+        const grouped = {};
+        UPLOAD_CATEGORIES.forEach(cat => {
+            const key = `${cat.grade}_${cat.type}`;
+            grouped[key] = cat;
+        });
+        
+        // Tạo HTML cho từng danh mục (mỗi ô là 1 grade+type)
+        grid.innerHTML = '';
+        Object.values(grouped).forEach(cat => {
+            const zone = document.createElement('div');
+            zone.className = 'upload-zone';
+            const displayLabel = cat.grade === 'TOEIC' ? 'LUYỆN THI TOEIC' : `Lớp ${cat.grade} - ${cat.type === 'SGK' ? 'SGK' : 'Mở rộng'}`;
+            zone.innerHTML = `
+                <h4>
+                    ${displayLabel}
+                    <button onclick="deleteCategory('${cat.grade}', '${cat.type}')" class="delete-category-btn" title="Xóa toàn bộ từ vựng trong danh mục này">
+                        <i class="fa-solid fa-trash-can"></i> Xóa hết
+                    </button>
+                </h4>
+                <div class="btn-group">
+                    <div class="upload-btn-wrapper">
+                        <button class="btn-upload ${cat.btnClass}">${cat.subLabel}</button>
+                        <input type="file" onchange="importVocab(this, '${cat.grade}', '${cat.type}')" accept=".json">
+                    </div>
+                </div>
+            `;
+            grid.appendChild(zone);
+        });
+    }
+
+    // Xóa toàn bộ từ vựng theo grade và type
+    window.deleteCategory = function(grade, type) {
+        if(!currentUser) return showNotice("Cần đăng nhập tài khoản admin trước!");
+        
+        const wordsToDelete = vocabularyData.filter(item => item.grade === grade && item.type === type);
+        if(wordsToDelete.length === 0) {
+            showNotice(`Danh mục ${grade} - ${type} không có từ vựng nào để xóa.`);
+            return;
+        }
+        
+        showConfirm(`Bạn có chắc chắn muốn xóa TOÀN BỘ ${wordsToDelete.length} từ vựng trong danh mục "${grade === 'TOEIC' ? 'TOEIC' : 'Lớp ' + grade} - ${type}" không? Hành động này KHÔNG THỂ HOÀN TÁC!`, function() {
+            // Lấy tất cả key cần xóa
+            const deletePromises = [];
+            wordsToDelete.forEach(item => {
+                const wordKey = (item.grade + "_" + item.word).replace(/[^a-zA-Z0-9]/g, "");
+                deletePromises.push(database.ref('users/' + TEACHER_UID + '/vocabulary/' + wordKey).remove());
+            });
+            
+            Promise.all(deletePromises)
+                .then(() => {
+                    showNotice(`Đã xóa thành công ${wordsToDelete.length} từ vựng khỏi danh mục!`);
+                    if(document.getElementById('editBox').style.display === 'block') {
+                        closeEditBox();
+                    }
+                })
+                .catch(err => {
+                    showNotice("Có lỗi xảy ra khi xóa dữ liệu!");
+                });
+        });
+    };
+
+    // Kiểm tra chế độ admin qua URL (?mode=admin)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('mode') === 'admin') {
+        isAdminMode = true;
+        document.getElementById('authPanel').style.display = 'flex';
+    }
+
+    function showNotice(message) {
+        document.getElementById('customModalText').innerText = message;
+        document.getElementById('modalActionArea').innerHTML = `<button class="custom-modal-btn" onclick="closeModal()">OK</button>`;
+        document.getElementById('customModal').classList.add('active');
+    }
+
+    function showConfirm(message, yesCallback) {
+        document.getElementById('customModalText').innerText = message;
+        document.getElementById('modalActionArea').innerHTML = `
+            <div class="modal-confirm-group">
+                <button class="custom-modal-btn btn-confirm-no" onclick="closeModal()">Hủy</button>
+                <button class="custom-modal-btn btn-confirm-yes" id="modalConfirmYesBtn">Xóa</button>
+            </div>
+        `;
+        document.getElementById('modalConfirmYesBtn').onclick = function() {
+            yesCallback();
+            closeModal();
+        };
+        document.getElementById('customModal').classList.add('active');
+    }
+
+    function closeModal() {
+        document.getElementById('customModal').classList.remove('active');
+    }
+
+    // 1. TẢI DỮ LIỆU ĐỘC LẬP REALTIME TỪ CLOUD
+    function loadWordsFromFirebase() {
+        database.ref('users/' + TEACHER_UID + '/vocabulary').on('value', (snapshot) => {
+            const data = snapshot.val();
+            let rawList = data ? Object.values(data) : [];
+            
+            vocabularyData = rawList.map(item => {
+                if (item.lesson && item.lesson.trim() === "Lớp 11 - Từ vựng SGK - Unit 1") {
+                    item.lesson = "GS - Unit 1";
+                }
+                return item;
+            });
+
+            filterAndPopulateLessons();
+            executeFiltering();
+        });
+    }
+    
+    loadWordsFromFirebase();
+
+    // 2. THEO DÕI TRẠNG THÁI ĐĂNG NHẬP
+    auth.onAuthStateChanged(user => {
+        if (user && isAdminMode) {
+            currentUser = user;
+            document.getElementById('authStatus').innerHTML = `🟢 Quyền quản trị trực tuyến hoàn tất!`;
+            document.getElementById('userEmailLabel').textContent = `GV: ${user.email}`;
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('userInfoPanel').style.display = 'flex';
+            document.getElementById('adminPanel').style.display = 'block';
+            renderUploadPanel(); // Vẽ lại bảng upload khi admin đăng nhập
+        } else {
+            currentUser = null;
+            if(isAdminMode) {
+                document.getElementById('authStatus').innerHTML = `⚠️ Chưa đăng nhập quyền quản trị viên`;
+                document.getElementById('loginForm').style.display = 'flex';
+                document.getElementById('userInfoPanel').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'none';
+            }
+        }
+        
+        if (vocabularyData.length > 0) {
+            executeFiltering();
+        }
+    });
+
+    function handleLogin() {
+        const email = document.getElementById('authEmail').value.trim();
+        const password = document.getElementById('authPassword').value.trim();
+        if(!email || !password) return showNotice("Vui lòng nhập tài khoản!");
+
+        auth.signInWithEmailAndPassword(email, password)
+            .then(() => showNotice("Đăng nhập thành công quyền quản trị!"))
+            .catch(err => { showNotice("Sai tài khoản hoặc mật khẩu, hãy thử lại"); });
+    }
+
+    function handleForgotPassword() {
+        const email = document.getElementById('authEmail').value.trim();
+        if (!email) return showNotice("Vui lòng gõ địa chỉ Email của bạn vào ô trước!");
+        auth.sendPasswordResetEmail(email)
+            .then(() => { showNotice(`Đã gửi liên kết đổi mật khẩu vào email: ${email}`); })
+            .catch(err => { showNotice("Đã có lỗi xảy ra, hãy thử lại"); });
+    }
+
+    function handleLogout() {
+        auth.signOut().then(() => {
+            showNotice("Đã đăng xuất quyền quản trị an toàn.");
+            window.location.reload();
+        });
+    }
+
+    function renderVocab(data) {
+        const grid = document.getElementById('vocabGrid');
+        grid.innerHTML = '';
+        if(data.length === 0) {
+            grid.innerHTML = `<div class="no-result"><i class="fa-regular fa-face-frown"></i> Không tìm thấy từ vựng nào phù hợp...</div>`;
+            return;
+        }
+
+        data.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'vocab-card';
+            let typeTagClass = item.type === 'SGK' ? 'tag-sgk' : (item.type === 'TOEIC' ? 'tag-toeic' : 'tag-morong');
+            const gradeLabel = item.grade === 'TOEIC' ? 'TOEIC' : `Lớp ${item.grade}`;
+
+            const adminActionsStyle = (currentUser && isAdminMode) ? 'flex' : 'none';
+
+            card.innerHTML = `
+                <div class="card-tags">
+                    <span class="tag tag-grade">${gradeLabel}</span>
+                    <span class="tag ${typeTagClass}">${item.type}</span>
+                    <span class="tag tag-level">${item.level || 'B2'}</span>
+                    <div class="admin-card-actions" style="display: ${adminActionsStyle}">
+                        <button onclick="openEditBox('${item.word}', '${item.grade}')" class="btn-edit-item" style="display: inline-block" title="Sửa từ này"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="deleteWord('${item.word}', '${item.grade}')" class="btn-delete-item" style="display: inline-block" title="Xóa từ này"><i class="fa-solid fa-trash-can"></i></button>
+                    </div>
+                </div>
+                <h3 class="word-title">${item.word}</h3>
+                <div class="word-ipa">${item.ipa || ''}</div>
+                <div class="word-meaning">${item.meaning}</div>
+                <div class="word-example"><strong>Ex:</strong> ${item.example_en}<span>${item.example_vi || ''}</span></div>
+                <details class="word-details">
+                    <summary>Xem mở rộng (Word Map) ✨</summary>
+                    <div class="details-content">
+                        ${item.collocations ? `<div class="detail-item"><strong>Collocations:</strong> ${item.collocations}</div>` : ''}
+                        ${item.word_family ? `<div class="detail-item"><strong>Word Family:</strong> ${item.word_family}</div>` : ''}
+                        ${item.synonyms ? `<div class="detail-item"><strong>Synonyms:</strong> ${item.synonyms}</div>` : ''}
+                        ${item.antonyms ? `<div class="detail-item"><strong>Antonyms:</strong> ${item.antonyms}</div>` : ''}
+                    </div>
+                </details>
+                <div><span class="lesson-badge"><i class="fa-solid fa-heart"></i> ${item.lesson || 'General'}</span></div>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    function openEditBox(wordName, gradeName) {
+        const targetWord = vocabularyData.find(item => item.word === wordName && item.grade === gradeName);
+        if(!targetWord) return;
+
+        const originalKey = (gradeName + "_" + wordName).replace(/[^a-zA-Z0-9]/g, "");
+        document.getElementById('editOriginalKey').value = originalKey;
+
+        document.getElementById('editWord').value = targetWord.word;
+        document.getElementById('editIpa').value = targetWord.ipa || '';
+        document.getElementById('editGrade').value = targetWord.grade;
+        document.getElementById('editType').value = targetWord.type;
+        document.getElementById('editLevel').value = targetWord.level || 'B2';
+        document.getElementById('editLesson').value = targetWord.lesson || 'Unit 1';
+        document.getElementById('editMeaning').value = targetWord.meaning || '';
+        document.getElementById('editExampleEn').value = targetWord.example_en || '';
+        document.getElementById('editExampleVi').value = targetWord.example_vi || '';
+        document.getElementById('editCollocations').value = targetWord.collocations || '';
+        document.getElementById('editWordFamily').value = targetWord.word_family || '';
+        document.getElementById('editSynonyms').value = targetWord.synonyms || '';
+        document.getElementById('editAntonyms').value = targetWord.antonyms || '';
+
+        document.getElementById('editBox').style.display = 'block';
+        document.getElementById('adminPanel').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function closeEditBox() {
+        document.getElementById('editBox').style.display = 'none';
+    }
+
+    function saveWordUpdate() {
+        if(!currentUser) return showNotice("Cần đăng nhập tài khoản admin trước!");
+        
+        const originalKey = document.getElementById('editOriginalKey').value;
+        const word = document.getElementById('editWord').value;
+        const grade = document.getElementById('editGrade').value;
+        
+        const updatedData = {
+            word: word,
+            ipa: document.getElementById('editIpa').value.trim(),
+            grade: grade,
+            type: document.getElementById('editType').value,
+            level: document.getElementById('editLevel').value.trim(),
+            lesson: document.getElementById('editLesson').value.trim(),
+            meaning: document.getElementById('editMeaning').value.trim(),
+            example_en: document.getElementById('editExampleEn').value.trim(),
+            example_vi: document.getElementById('editExampleVi').value.trim(),
+            collocations: document.getElementById('editCollocations').value.trim(),
+            word_family: document.getElementById('editWordFamily').value.trim(),
+            synonyms: document.getElementById('editSynonyms').value.trim(),
+            antonyms: document.getElementById('editAntonyms').value.trim()
+        };
+
+        const newKey = (grade + "_" + word).replace(/[^a-zA-Z0-9]/g, "");
+
+        if (originalKey !== newKey) {
+            database.ref('users/' + TEACHER_UID + '/vocabulary/' + originalKey).remove();
+        }
+
+        database.ref('users/' + TEACHER_UID + '/vocabulary/' + newKey).set(updatedData)
+            .then(() => {
+                showNotice(`Đã cập nhật dữ liệu từ "${word}" thành công!`);
+                closeEditBox();
+            })
+            .catch(err => { showNotice("Lỗi: Không thể lưu dữ liệu!"); });
+    }
+
+    function filterAndPopulateLessons() {
+        const selectedGrade = document.getElementById('gradeFilter').value;
+        const selectedType = document.getElementById('typeFilter').value;
+        const lessonFilterSelect = document.getElementById('lessonFilter');
+
+        const previousSelectedLesson = lessonFilterSelect.value;
+
+        const validLessons = vocabularyData
+            .filter(item => {
+                const matchGrade = (selectedGrade === 'all') || (item.grade === selectedGrade);
+                const matchType = (selectedType === 'all') || (item.type === selectedType);
+                return matchGrade && matchType;
+            })
+            .map(item => item.lesson || 'General');
+
+        const uniqueLessons = [...new Set(validLessons)].sort();
+
+        lessonFilterSelect.innerHTML = '<option value="all">📖 Tất cả bài học</option>';
+        uniqueLessons.forEach(lesson => {
+            const option = document.createElement('option');
+            option.value = lesson;
+            option.textContent = lesson;
+            if (lesson === previousSelectedLesson) {
+                option.selected = true;
+            }
+            lessonFilterSelect.appendChild(option);
+        });
+
+        executeFiltering();
+    }
+
+    function executeFiltering() {
+        const keyword = document.getElementById('searchInput').value.toLowerCase().trim();
+        const selectedGrade = document.getElementById('gradeFilter').value;
+        const selectedType = document.getElementById('typeFilter').value;
+        const selectedLesson = document.getElementById('lessonFilter').value;
+
+        const filtered = vocabularyData.filter(item => {
+            const matchKeyword = item.word.toLowerCase().includes(keyword) || (item.meaning && item.meaning.toLowerCase().includes(keyword));
+            const matchGrade = (selectedGrade === 'all') || (item.grade === selectedGrade);
+            const matchType = (selectedType === 'all') || (item.type === selectedType);
+            const matchLesson = (selectedLesson === 'all') || (item.lesson === selectedLesson);
+            return matchKeyword && matchGrade && matchType && matchLesson;
+        });
+
+        renderVocab(filtered);
+    }
+
+    function importVocab(inputElement, grade, type) {
+        if(!currentUser) return showNotice("Cần đăng nhập tài khoản admin trước!");
+        const file = inputElement.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                let newData = JSON.parse(e.target.result);
+                if (Array.isArray(newData)) {
+                    database.ref('users/' + TEACHER_UID + '/vocabulary').once('value').then((snapshot) => {
+                        let currentDbData = snapshot.val() || {};
+                        
+                        newData.forEach(item => {
+                            item.grade = grade;
+                            item.type = type;
+                            
+                            if (item.lesson && item.lesson.trim() === "Lớp 11 - Từ vựng SGK - Unit 1") {
+                                item.lesson = "GS - Unit 1";
+                            }
+
+                            const wordKey = (grade + "_" + item.word).replace(/[^a-zA-Z0-9]/g, "");
+                            currentDbData[wordKey] = item;
+                        });
+
+                        database.ref('users/' + TEACHER_UID + '/vocabulary').set(currentDbData)
+                            .then(() => {
+                                showNotice(`Đã nạp dữ liệu thành công [Khóa ${grade === 'TOEIC' ? 'TOEIC' : 'Lớp ' + grade} - ${type}].`);
+                            });
+                    });
+                }
+            } catch (err) { showNotice("Lỗi cấu trúc file JSON."); }
+        };
+        reader.readAsText(file);
+        inputElement.value = '';
+    }
+
+    function deleteWord(wordName, gradeName) {
+        showConfirm(`Bạn có chắc chắn muốn xóa từ "${wordName}" khỏi hệ thống không?`, function() {
+            const wordKey = (gradeName + "_" + wordName).replace(/[^a-zA-Z0-9]/g, "");
+            database.ref('users/' + TEACHER_UID + '/vocabulary/' + wordKey).remove()
+                .then(() => {
+                    showNotice("Đã xóa từ vựng thành công!");
+                    if(document.getElementById('editWord').value === wordName) {
+                        closeEditBox();
+                    }
+                });
+        });
+    }
+
+    document.getElementById('searchInput').addEventListener('input', executeFiltering);
+    document.getElementById('gradeFilter').addEventListener('change', filterAndPopulateLessons);
+    document.getElementById('typeFilter').addEventListener('change', filterAndPopulateLessons);
+    document.getElementById('lessonFilter').addEventListener('change', executeFiltering);
+</script>
+</body>
+</html>
