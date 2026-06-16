@@ -374,9 +374,6 @@
     let isAdminMode = false;
     const TEACHER_UID = "btVDHtA2iShOFZp2YKeDDEZN0VI3";
 
-    // Cấu trúc lưu trữ: users/{uid}/vocabulary_files/{grade}_{type}_{fileName} -> {fileName, wordCount, timestamp, wordKeys[]}
-    // và users/{uid}/vocabulary/... lưu từng từ
-
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('mode') === 'admin') {
         isAdminMode = true;
@@ -403,6 +400,16 @@
 
     function closeModal() { document.getElementById('customModal').classList.remove('active'); }
 
+    function escapeHtml(str) { 
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m){
+            if(m==='&') return '&amp;'; 
+            if(m==='<') return '&lt;'; 
+            if(m==='>') return '&gt;'; 
+            return m;
+        }); 
+    }
+
     // Tải dữ liệu từ vựng
     function loadWordsFromFirebase() {
         database.ref('users/' + TEACHER_UID + '/vocabulary').on('value', (snapshot) => {
@@ -413,7 +420,10 @@
             }) : [];
             filterAndPopulateLessons();
             executeFiltering();
-            if (currentUser && isAdminMode) renderUploadPanel(); // Cập nhật danh sách file
+            if (currentUser && isAdminMode) loadFileList();
+        }, (error) => {
+            console.error("Lỗi đọc dữ liệu:", error);
+            showNotice("❌ Không thể kết nối đến Firebase! Kiểm tra kết nối mạng.");
         });
     }
     
@@ -424,6 +434,8 @@
             const files = snapshot.val() || {};
             window.fileRegistry = files;
             renderUploadPanel();
+        }).catch((error) => {
+            console.error("Lỗi đọc file list:", error);
         });
     }
 
@@ -444,9 +456,10 @@
         ];
         
         grid.innerHTML = '';
+        const files = window.fileRegistry || {};
+        
         categories.forEach(cat => {
-            const catKey = `${cat.grade}_${cat.type}`;
-            const filesInCat = window.fileRegistry ? Object.values(window.fileRegistry).filter(f => f.grade === cat.grade && f.type === cat.type) : [];
+            const filesInCat = Object.values(files).filter(f => f.grade === cat.grade && f.type === cat.type);
             
             const zone = document.createElement('div');
             zone.className = 'upload-zone';
@@ -477,11 +490,9 @@
         });
     }
     
-    function escapeHtml(str) { return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
-    
-    // Upload file mới
+    // Upload file mới - ĐÃ SỬA
     window.uploadFile = function(inputElement, grade, type) {
-        if(!currentUser) return showNotice("Cần đăng nhập admin!");
+        if(!currentUser) return showNotice("⚠️ Cần đăng nhập admin!");
         const file = inputElement.files[0];
         if (!file) return;
         
@@ -489,13 +500,45 @@
         reader.onload = function(e) {
             try {
                 let newWords = JSON.parse(e.target.result);
-                if (!Array.isArray(newWords)) throw new Error("File phải là mảng JSON");
+                if (!Array.isArray(newWords)) {
+                    showNotice("❌ File phải là mảng JSON (bắt đầu bằng [ và kết thúc bằng ])!");
+                    return;
+                }
+                
+                if (newWords.length === 0) {
+                    showNotice("❌ File JSON rỗng! Không có từ nào để tải.");
+                    return;
+                }
+                
+                // Kiểm tra dữ liệu bắt buộc
+                let hasError = false;
+                newWords.forEach((item, index) => {
+                    if (!item.word) {
+                        hasError = true;
+                        showNotice(`❌ Từ thứ ${index + 1} thiếu trường "word"!`);
+                    }
+                    if (!item.meaning) {
+                        hasError = true;
+                        showNotice(`❌ Từ "${item.word || index}" thiếu trường "meaning"!`);
+                    }
+                });
+                if (hasError) return;
                 
                 // Chuẩn hóa dữ liệu
                 const wordKeys = [];
                 newWords.forEach(word => {
                     word.grade = grade;
                     word.type = type;
+                    word.level = word.level || 'B2';
+                    word.lesson = word.lesson || 'Chưa phân loại';
+                    word.ipa = word.ipa || '';
+                    word.example_en = word.example_en || '';
+                    word.example_vi = word.example_vi || '';
+                    word.collocations = word.collocations || '';
+                    word.word_family = word.word_family || '';
+                    word.synonyms = word.synonyms || '';
+                    word.antonyms = word.antonyms || '';
+                    
                     if (word.lesson && word.lesson === "Lớp 11 - Từ vựng SGK - Unit 1") word.lesson = "GS - Unit 1";
                     const key = (grade + "_" + word.word).replace(/[^a-zA-Z0-9]/g, "");
                     wordKeys.push(key);
@@ -516,29 +559,38 @@
                 const vocabRef = database.ref('users/' + TEACHER_UID + '/vocabulary');
                 const filesRef = database.ref('users/' + TEACHER_UID + '/vocabulary_files/' + fileId);
                 
-                vocabRef.once('value').then(snapshot => {
-                    let currentData = snapshot.val() || {};
-                    newWords.forEach(word => {
-                        const key = (grade + "_" + word.word).replace(/[^a-zA-Z0-9]/g, "");
-                        currentData[key] = word;
+                vocabRef.once('value')
+                    .then(snapshot => {
+                        let currentData = snapshot.val() || {};
+                        newWords.forEach(word => {
+                            const key = (grade + "_" + word.word).replace(/[^a-zA-Z0-9]/g, "");
+                            currentData[key] = word;
+                        });
+                        return vocabRef.set(currentData);
+                    })
+                    .then(() => {
+                        return filesRef.set(fileInfo);
+                    })
+                    .then(() => {
+                        showNotice(`✅ Đã tải lên thành công file "${file.name}" với ${newWords.length} từ vựng!`);
+                        loadFileList();
+                    })
+                    .catch(err => { 
+                        console.error("Lỗi Firebase:", err);
+                        showNotice("❌ Lỗi khi lưu dữ liệu! Chi tiết: " + err.message); 
                     });
-                    return vocabRef.set(currentData);
-                }).then(() => {
-                    return filesRef.set(fileInfo);
-                }).then(() => {
-                    showNotice(`Đã tải lên thành công file "${file.name}" với ${newWords.length} từ vựng!`);
-                    loadFileList();
-                }).catch(err => { showNotice("Lỗi khi lưu dữ liệu!"); });
-                
-            } catch(err) { showNotice("Lỗi: File JSON không hợp lệ!"); }
+                    
+            } catch(err) { 
+                console.error("Lỗi parse JSON:", err);
+                showNotice("❌ Lỗi: File JSON không hợp lệ! Vui lòng kiểm tra định dạng (dùng dấu ngoặc kép \")."); 
+            }
         };
         reader.readAsText(file);
         inputElement.value = '';
     };
     
-    // Xóa một tập tin và toàn bộ từ vựng của tập tin đó
+    // Xóa một tập tin - ĐÃ SỬA
     window.deleteFile = function(grade, type, fileName) {
-        // Tìm file trong registry
         const files = window.fileRegistry || {};
         let targetFileId = null;
         let targetFileInfo = null;
@@ -552,12 +604,11 @@
         }
         
         if (!targetFileId || !targetFileInfo) {
-            showNotice("Không tìm thấy tập tin!");
+            showNotice("❌ Không tìm thấy tập tin!");
             return;
         }
         
-        showConfirm(`Bạn có chắc muốn xóa tập tin "${fileName}" (${targetFileInfo.wordCount} từ vựng)?`, function() {
-            // Xóa từng từ vựng thuộc file này
+        showConfirm(`⚠️ Bạn có chắc muốn xóa tập tin "${fileName}" (${targetFileInfo.wordCount} từ vựng)?`, function() {
             const deletePromises = [];
             if (targetFileInfo.wordKeys && targetFileInfo.wordKeys.length) {
                 targetFileInfo.wordKeys.forEach(wordKey => {
@@ -565,18 +616,21 @@
                 });
             }
             
-            // Xóa thông tin file
             deletePromises.push(database.ref('users/' + TEACHER_UID + '/vocabulary_files/' + targetFileId).remove());
             
             Promise.all(deletePromises)
                 .then(() => {
-                    showNotice(`Đã xóa tập tin "${fileName}" thành công!`);
+                    showNotice(`✅ Đã xóa tập tin "${fileName}" thành công!`);
                     loadFileList();
                 })
-                .catch(err => { showNotice("Lỗi khi xóa tập tin!"); });
+                .catch(err => { 
+                    console.error("Lỗi xóa:", err);
+                    showNotice("❌ Lỗi khi xóa tập tin! Chi tiết: " + err.message); 
+                });
         });
     };
 
+    // Auth
     auth.onAuthStateChanged(user => {
         if (user && isAdminMode) {
             currentUser = user;
@@ -600,26 +654,37 @@
     function handleLogin() {
         const email = document.getElementById('authEmail').value.trim();
         const password = document.getElementById('authPassword').value.trim();
-        if(!email || !password) return showNotice("Vui lòng nhập đầy đủ!");
+        if(!email || !password) return showNotice("⚠️ Vui lòng nhập đầy đủ email và mật khẩu!");
         auth.signInWithEmailAndPassword(email, password)
-            .then(() => showNotice("Đăng nhập thành công!"))
-            .catch(() => showNotice("Sai tài khoản hoặc mật khẩu!"));
+            .then(() => showNotice("✅ Đăng nhập thành công!"))
+            .catch((err) => {
+                console.error("Lỗi login:", err);
+                showNotice("❌ Sai tài khoản hoặc mật khẩu! Vui lòng thử lại.");
+            });
     }
     
     function handleForgotPassword() {
         const email = document.getElementById('authEmail').value.trim();
-        if (!email) return showNotice("Nhập email để lấy lại mật khẩu!");
+        if (!email) return showNotice("⚠️ Nhập email để lấy lại mật khẩu!");
         auth.sendPasswordResetEmail(email)
-            .then(() => showNotice(`Đã gửi link đặt lại mật khẩu tới ${email}`))
-            .catch(() => showNotice("Lỗi gửi email!"));
+            .then(() => showNotice(`✅ Đã gửi link đặt lại mật khẩu tới ${email}`))
+            .catch((err) => {
+                console.error("Lỗi gửi email:", err);
+                showNotice("❌ Lỗi gửi email! Vui lòng kiểm tra lại địa chỉ email.");
+            });
     }
     
-    function handleLogout() { auth.signOut().then(() => { window.location.reload(); }); }
+    function handleLogout() { 
+        auth.signOut().then(() => { 
+            showNotice("✅ Đã đăng xuất!");
+            setTimeout(() => window.location.reload(), 500);
+        }); 
+    }
     
     function renderVocab(data) {
         const grid = document.getElementById('vocabGrid');
         grid.innerHTML = '';
-        if(data.length === 0) { grid.innerHTML = `<div class="no-result">Không tìm thấy từ vựng nào...</div>`; return; }
+        if(data.length === 0) { grid.innerHTML = `<div class="no-result">📚 Không tìm thấy từ vựng nào...</div>`; return; }
         
         data.forEach(item => {
             const card = document.createElement('div');
@@ -634,23 +699,23 @@
                     <span class="tag ${typeTagClass}">${item.type}</span>
                     <span class="tag tag-level">${item.level || 'B2'}</span>
                     <div class="admin-card-actions" style="display: ${adminActions}">
-                        <button onclick="openEditBox('${item.word}', '${item.grade}')" class="btn-edit-item" style="display: inline-block"><i class="fa-solid fa-pen-to-square"></i></button>
-                        <button onclick="deleteWord('${item.word}', '${item.grade}')" class="btn-delete-item" style="display: inline-block"><i class="fa-solid fa-trash-can"></i></button>
+                        <button onclick="openEditBox('${escapeHtml(item.word)}', '${item.grade}')" class="btn-edit-item" style="display: inline-block"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="deleteWord('${escapeHtml(item.word)}', '${item.grade}')" class="btn-delete-item" style="display: inline-block"><i class="fa-solid fa-trash-can"></i></button>
                     </div>
                 </div>
-                <h3 class="word-title">${item.word}</h3>
-                <div class="word-ipa">${item.ipa || ''}</div>
-                <div class="word-meaning">${item.meaning || ''}</div>
-                <div class="word-example"><strong>Ex:</strong> ${item.example_en || ''}<span>${item.example_vi || ''}</span></div>
+                <h3 class="word-title">${escapeHtml(item.word)}</h3>
+                <div class="word-ipa">${escapeHtml(item.ipa || '')}</div>
+                <div class="word-meaning">${escapeHtml(item.meaning || '')}</div>
+                <div class="word-example"><strong>Ex:</strong> ${escapeHtml(item.example_en || '')}<span>${escapeHtml(item.example_vi || '')}</span></div>
                 <details class="word-details"><summary>Xem mở rộng ✨</summary>
                     <div class="details-content">
-                        ${item.collocations ? `<div><strong>Collocations:</strong> ${item.collocations}</div>` : ''}
-                        ${item.word_family ? `<div><strong>Word Family:</strong> ${item.word_family}</div>` : ''}
-                        ${item.synonyms ? `<div><strong>Synonyms:</strong> ${item.synonyms}</div>` : ''}
-                        ${item.antonyms ? `<div><strong>Antonyms:</strong> ${item.antonyms}</div>` : ''}
+                        ${item.collocations ? `<div class="detail-item"><strong>Collocations:</strong> ${escapeHtml(item.collocations)}</div>` : ''}
+                        ${item.word_family ? `<div class="detail-item"><strong>Word Family:</strong> ${escapeHtml(item.word_family)}</div>` : ''}
+                        ${item.synonyms ? `<div class="detail-item"><strong>Synonyms:</strong> ${escapeHtml(item.synonyms)}</div>` : ''}
+                        ${item.antonyms ? `<div class="detail-item"><strong>Antonyms:</strong> ${escapeHtml(item.antonyms)}</div>` : ''}
                     </div>
                 </details>
-                <div><span class="lesson-badge">📖 ${item.lesson || 'General'}</span></div>
+                <div><span class="lesson-badge">📖 ${escapeHtml(item.lesson || 'General')}</span></div>
             `;
             grid.appendChild(card);
         });
@@ -658,7 +723,10 @@
     
     function openEditBox(wordName, gradeName) {
         const target = vocabularyData.find(i => i.word === wordName && i.grade === gradeName);
-        if(!target) return;
+        if(!target) {
+            showNotice("❌ Không tìm thấy từ vựng!");
+            return;
+        }
         document.getElementById('editOriginalKey').value = (gradeName + "_" + wordName).replace(/[^a-zA-Z0-9]/g, "");
         document.getElementById('editWord').value = target.word;
         document.getElementById('editIpa').value = target.ipa || '';
@@ -674,35 +742,87 @@
         document.getElementById('editSynonyms').value = target.synonyms || '';
         document.getElementById('editAntonyms').value = target.antonyms || '';
         document.getElementById('editBox').style.display = 'block';
+        document.getElementById('editBox').scrollIntoView({ behavior: 'smooth' });
     }
     
     function closeEditBox() { document.getElementById('editBox').style.display = 'none'; }
     
+    // SAVE WORD UPDATE - ĐÃ SỬA
     function saveWordUpdate() {
-        if(!currentUser) return showNotice("Cần đăng nhập admin!");
+        if(!currentUser) return showNotice("⚠️ Cần đăng nhập admin!");
+        
         const originalKey = document.getElementById('editOriginalKey').value;
-        const word = document.getElementById('editWord').value;
+        const word = document.getElementById('editWord').value.trim();
         const grade = document.getElementById('editGrade').value;
+        
+        // Kiểm tra dữ liệu bắt buộc
+        if (!word) {
+            showNotice("❌ Từ vựng không được để trống!");
+            return;
+        }
+        if (!document.getElementById('editMeaning').value.trim()) {
+            showNotice("❌ Ý nghĩa không được để trống!");
+            return;
+        }
+        
         const updatedData = {
-            word: word, ipa: document.getElementById('editIpa').value.trim(), grade: grade,
-            type: document.getElementById('editType').value, level: document.getElementById('editLevel').value.trim(),
-            lesson: document.getElementById('editLesson').value.trim(), meaning: document.getElementById('editMeaning').value.trim(),
-            example_en: document.getElementById('editExampleEn').value.trim(), example_vi: document.getElementById('editExampleVi').value.trim(),
-            collocations: document.getElementById('editCollocations').value.trim(), word_family: document.getElementById('editWordFamily').value.trim(),
-            synonyms: document.getElementById('editSynonyms').value.trim(), antonyms: document.getElementById('editAntonyms').value.trim()
+            word: word, 
+            ipa: document.getElementById('editIpa').value.trim() || '',
+            grade: grade,
+            type: document.getElementById('editType').value, 
+            level: document.getElementById('editLevel').value.trim() || 'B2',
+            lesson: document.getElementById('editLesson').value.trim() || 'Chưa phân loại', 
+            meaning: document.getElementById('editMeaning').value.trim(),
+            example_en: document.getElementById('editExampleEn').value.trim() || '', 
+            example_vi: document.getElementById('editExampleVi').value.trim() || '',
+            collocations: document.getElementById('editCollocations').value.trim() || '', 
+            word_family: document.getElementById('editWordFamily').value.trim() || '',
+            synonyms: document.getElementById('editSynonyms').value.trim() || '', 
+            antonyms: document.getElementById('editAntonyms').value.trim() || ''
         };
+        
         const newKey = (grade + "_" + word).replace(/[^a-zA-Z0-9]/g, "");
-        if (originalKey !== newKey) database.ref('users/' + TEACHER_UID + '/vocabulary/' + originalKey).remove();
-        database.ref('users/' + TEACHER_UID + '/vocabulary/' + newKey).set(updatedData)
-            .then(() => { showNotice("Cập nhật thành công!"); closeEditBox(); })
-            .catch(() => showNotice("Lỗi lưu dữ liệu!"));
+        
+        // Nếu đổi key, xóa key cũ trước
+        if (originalKey && originalKey !== newKey) {
+            database.ref('users/' + TEACHER_UID + '/vocabulary/' + originalKey).remove()
+                .then(() => {
+                    return database.ref('users/' + TEACHER_UID + '/vocabulary/' + newKey).set(updatedData);
+                })
+                .then(() => { 
+                    showNotice("✅ Cập nhật thành công!"); 
+                    closeEditBox(); 
+                })
+                .catch(err => { 
+                    console.error("Lỗi update:", err);
+                    showNotice("❌ Lỗi lưu dữ liệu! Chi tiết: " + err.message); 
+                });
+        } else {
+            database.ref('users/' + TEACHER_UID + '/vocabulary/' + newKey).set(updatedData)
+                .then(() => { 
+                    showNotice("✅ Cập nhật thành công!"); 
+                    closeEditBox(); 
+                })
+                .catch(err => { 
+                    console.error("Lỗi update:", err);
+                    showNotice("❌ Lỗi lưu dữ liệu! Chi tiết: " + err.message); 
+                });
+        }
     }
     
+    // DELETE WORD - ĐÃ SỬA
     function deleteWord(wordName, gradeName) {
-        showConfirm(`Xóa từ "${wordName}"?`, () => {
+        showConfirm(`⚠️ Xóa từ "${wordName}"?`, () => {
             const key = (gradeName + "_" + wordName).replace(/[^a-zA-Z0-9]/g, "");
             database.ref('users/' + TEACHER_UID + '/vocabulary/' + key).remove()
-                .then(() => { showNotice("Đã xóa từ vựng!"); if(document.getElementById('editWord').value === wordName) closeEditBox(); });
+                .then(() => { 
+                    showNotice("✅ Đã xóa từ vựng!"); 
+                    if(document.getElementById('editWord').value === wordName) closeEditBox(); 
+                })
+                .catch(err => { 
+                    console.error("Lỗi xóa:", err);
+                    showNotice("❌ Lỗi xóa từ vựng! Chi tiết: " + err.message); 
+                });
         });
     }
     
@@ -717,7 +837,7 @@
     }
     
     function executeFiltering() {
-        const keyword = document.getElementById('searchInput').value.toLowerCase();
+        const keyword = document.getElementById('searchInput').value.toLowerCase().trim();
         const grade = document.getElementById('gradeFilter').value;
         const type = document.getElementById('typeFilter').value;
         const lesson = document.getElementById('lessonFilter').value;
@@ -729,11 +849,13 @@
         renderVocab(filtered);
     }
     
+    // Event listeners
     document.getElementById('searchInput').addEventListener('input', executeFiltering);
     document.getElementById('gradeFilter').addEventListener('change', filterAndPopulateLessons);
     document.getElementById('typeFilter').addEventListener('change', filterAndPopulateLessons);
     document.getElementById('lessonFilter').addEventListener('change', executeFiltering);
     
+    // Khởi động
     loadWordsFromFirebase();
 </script>
 </body>
